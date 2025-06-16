@@ -1,0 +1,10 @@
+^C:\PROJECTS\SCRAMBLE\BUILD\CMAKEFILES\1945F15A33943243DC3E6CF9DF7BFA5D\GENERATE.STAMP.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Projects/scramble -BC:/Projects/scramble/build --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file C:/Projects/scramble/build/scramble.sln
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

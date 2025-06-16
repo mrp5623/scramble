@@ -1,0 +1,90 @@
+# CMake generation dependency list for this directory.
+C:/Program Files/CMake/share/cmake-4.0/Modules/CMakeCInformation.cmake
+C:/Program Files/CMake/share/cmake-4.0/Modules/CMakeCXXInformation.cmake
+C:/Program Files/CMake/share/cmake-4.0/Modules/CMakeCommonLanguageInclude.cmake
+C:/Program Files/CMake/share/cmake-4.0/Modules/CMakeDependentOption.cmake
+C:/Program Files/CMake/share/cmake-4.0/Modules/CMakeFindDependencyMacro.cmake
+C:/Program Files/CMake/share/cmake-4.0/Modules/CMakeGenericSystem.cmake
+C:/Program Files/CMake/share/cmake-4.0/Modules/CMakeInitializeConfigs.cmake
+C:/Program Files/CMake/share/cmake-4.0/Modules/CMakeLanguageInformation.cmake
+C:/Program Files/CMake/share/cmake-4.0/Modules/CMakeParseArguments.cmake
+C:/Program Files/CMake/share/cmake-4.0/Modules/CMakePushCheckState.cmake
+C:/Program Files/CMake/share/cmake-4.0/Modules/CMakeRCInformation.cmake
+C:/Program Files/CMake/share/cmake-4.0/Modules/CMakeSystemSpecificInformation.cmake
+C:/Program Files/CMake/share/cmake-4.0/Modules/CMakeSystemSpecificInitialize.cmake
+C:/Program Files/CMake/share/cmake-4.0/Modules/CheckCSourceCompiles.cmake
+C:/Program Files/CMake/share/cmake-4.0/Modules/Compiler/CMakeCommonCompilerMacros.cmake
+C:/Program Files/CMake/share/cmake-4.0/Modules/Compiler/MSVC-C.cmake
+C:/Program Files/CMake/share/cmake-4.0/Modules/Compiler/MSVC-CXX.cmake
+C:/Program Files/CMake/share/cmake-4.0/Modules/Compiler/MSVC.cmake
+C:/Program Files/CMake/share/cmake-4.0/Modules/FindIconv.cmake
+C:/Program Files/CMake/share/cmake-4.0/Modules/FindPackageHandleStandardArgs.cmake
+C:/Program Files/CMake/share/cmake-4.0/Modules/FindPackageMessage.cmake
+C:/Program Files/CMake/share/cmake-4.0/Modules/FindZLIB.cmake
+C:/Program Files/CMake/share/cmake-4.0/Modules/Internal/CMakeCLinkerInformation.cmake
+C:/Program Files/CMake/share/cmake-4.0/Modules/Internal/CMakeCXXLinkerInformation.cmake
+C:/Program Files/CMake/share/cmake-4.0/Modules/Internal/CMakeCommonLinkerInformation.cmake
+C:/Program Files/CMake/share/cmake-4.0/Modules/Internal/CheckSourceCompiles.cmake
+C:/Program Files/CMake/share/cmake-4.0/Modules/Linker/MSVC-C.cmake
+C:/Program Files/CMake/share/cmake-4.0/Modules/Linker/MSVC-CXX.cmake
+C:/Program Files/CMake/share/cmake-4.0/Modules/Linker/MSVC.cmake
+C:/Program Files/CMake/share/cmake-4.0/Modules/Platform/Linker/Windows-MSVC-C.cmake
+C:/Program Files/CMake/share/cmake-4.0/Modules/Platform/Linker/Windows-MSVC-CXX.cmake
+C:/Program Files/CMake/share/cmake-4.0/Modules/Platform/Linker/Windows-MSVC.cmake
+C:/Program Files/CMake/share/cmake-4.0/Modules/Platform/Windows-Initialize.cmake
+C:/Program Files/CMake/share/cmake-4.0/Modules/Platform/Windows-MSVC-C.cmake
+C:/Program Files/CMake/share/cmake-4.0/Modules/Platform/Windows-MSVC-CXX.cmake
+C:/Program Files/CMake/share/cmake-4.0/Modules/Platform/Windows-MSVC.cmake
+C:/Program Files/CMake/share/cmake-4.0/Modules/Platform/Windows.cmake
+C:/Program Files/CMake/share/cmake-4.0/Modules/Platform/WindowsPaths.cmake
+C:/Program Files/CMake/share/cmake-4.0/Modules/SelectLibraryConfigurations.cmake
+C:/Projects/scramble/CMakeLists.txt
+C:/Projects/scramble/build/CMakeFiles/4.0.2/CMakeCCompiler.cmake
+C:/Projects/scramble/build/CMakeFiles/4.0.2/CMakeCXXCompiler.cmake
+C:/Projects/scramble/build/CMakeFiles/4.0.2/CMakeRCCompiler.cmake
+C:/Projects/scramble/build/CMakeFiles/4.0.2/CMakeSystem.cmake
+C:/dev/vcpkg/installed/x64-windows/share/cmake/Qt5/Qt5Config.cmake
+C:/dev/vcpkg/installed/x64-windows/share/cmake/Qt5/Qt5ConfigVersion.cmake
+C:/dev/vcpkg/installed/x64-windows/share/cmake/Qt5/Qt5ModuleLocation.cmake
+C:/dev/vcpkg/installed/x64-windows/share/cmake/Qt5Core/Qt5CoreConfig.cmake
+C:/dev/vcpkg/installed/x64-windows/share/cmake/Qt5Core/Qt5CoreConfigExtras.cmake
+C:/dev/vcpkg/installed/x64-windows/share/cmake/Qt5Core/Qt5CoreConfigExtrasMkspecDir.cmake
+C:/dev/vcpkg/installed/x64-windows/share/cmake/Qt5Core/Qt5CoreConfigVersion.cmake
+C:/dev/vcpkg/installed/x64-windows/share/cmake/Qt5Core/Qt5CoreMacros.cmake
+C:/dev/vcpkg/installed/x64-windows/share/cmake/Qt5Gui/Qt5GuiConfig.cmake
+C:/dev/vcpkg/installed/x64-windows/share/cmake/Qt5Gui/Qt5GuiConfigExtras.cmake
+C:/dev/vcpkg/installed/x64-windows/share/cmake/Qt5Gui/Qt5GuiConfigVersion.cmake
+C:/dev/vcpkg/installed/x64-windows/share/cmake/Qt5Gui/Qt5Gui_QGifPlugin.cmake
+C:/dev/vcpkg/installed/x64-windows/share/cmake/Qt5Gui/Qt5Gui_QICOPlugin.cmake
+C:/dev/vcpkg/installed/x64-windows/share/cmake/Qt5Gui/Qt5Gui_QJpegPlugin.cmake
+C:/dev/vcpkg/installed/x64-windows/share/cmake/Qt5Gui/Qt5Gui_QMinimalIntegrationPlugin.cmake
+C:/dev/vcpkg/installed/x64-windows/share/cmake/Qt5Gui/Qt5Gui_QOffscreenIntegrationPlugin.cmake
+C:/dev/vcpkg/installed/x64-windows/share/cmake/Qt5Gui/Qt5Gui_QTuioTouchPlugin.cmake
+C:/dev/vcpkg/installed/x64-windows/share/cmake/Qt5Gui/Qt5Gui_QWindowsDirect2DIntegrationPlugin.cmake
+C:/dev/vcpkg/installed/x64-windows/share/cmake/Qt5Gui/Qt5Gui_QWindowsIntegrationPlugin.cmake
+C:/dev/vcpkg/installed/x64-windows/share/cmake/Qt5Gui/Qt5Gui_QXdgDesktopPortalThemePlugin.cmake
+C:/dev/vcpkg/installed/x64-windows/share/cmake/Qt5Widgets/Qt5WidgetsConfig.cmake
+C:/dev/vcpkg/installed/x64-windows/share/cmake/Qt5Widgets/Qt5WidgetsConfigExtras.cmake
+C:/dev/vcpkg/installed/x64-windows/share/cmake/Qt5Widgets/Qt5WidgetsConfigVersion.cmake
+C:/dev/vcpkg/installed/x64-windows/share/cmake/Qt5Widgets/Qt5WidgetsMacros.cmake
+C:/dev/vcpkg/installed/x64-windows/share/cmake/Qt5Widgets/Qt5Widgets_QWindowsVistaStylePlugin.cmake
+C:/dev/vcpkg/installed/x64-windows/share/cpr/cprConfig.cmake
+C:/dev/vcpkg/installed/x64-windows/share/cpr/cprConfigVersion.cmake
+C:/dev/vcpkg/installed/x64-windows/share/cpr/cprTargets-debug.cmake
+C:/dev/vcpkg/installed/x64-windows/share/cpr/cprTargets-release.cmake
+C:/dev/vcpkg/installed/x64-windows/share/cpr/cprTargets.cmake
+C:/dev/vcpkg/installed/x64-windows/share/curl/CURLConfig.cmake
+C:/dev/vcpkg/installed/x64-windows/share/curl/CURLConfigVersion.cmake
+C:/dev/vcpkg/installed/x64-windows/share/curl/CURLTargets-debug.cmake
+C:/dev/vcpkg/installed/x64-windows/share/curl/CURLTargets-release.cmake
+C:/dev/vcpkg/installed/x64-windows/share/curl/CURLTargets.cmake
+C:/dev/vcpkg/installed/x64-windows/share/libxml2/libxml2-config-version.cmake
+C:/dev/vcpkg/installed/x64-windows/share/libxml2/libxml2-config.cmake
+C:/dev/vcpkg/installed/x64-windows/share/libxml2/libxml2-export-debug.cmake
+C:/dev/vcpkg/installed/x64-windows/share/libxml2/libxml2-export-release.cmake
+C:/dev/vcpkg/installed/x64-windows/share/libxml2/libxml2-export.cmake
+c:/dev/vcpkg/installed/x64-windows/share/curl/vcpkg-cmake-wrapper.cmake
+c:/dev/vcpkg/installed/x64-windows/share/iconv/vcpkg-cmake-wrapper.cmake
+c:/dev/vcpkg/installed/x64-windows/share/libxml2/vcpkg-cmake-wrapper.cmake
+c:/dev/vcpkg/installed/x64-windows/share/zlib/vcpkg-cmake-wrapper.cmake
+c:/dev/vcpkg/scripts/buildsystems/vcpkg.cmake
