@@ -61,7 +61,6 @@ std::pair<bool, std::string> Scramble::checkAns(const std::string& guess) {
         return {false, "Already Guessed, Try Again!"};
     } else {
         guessed.push_back(guess);
-        //addYards(guess);
         std::cout << "Correct" << std::endl;
         nextTurn();
         return {true, "Correct!"};
