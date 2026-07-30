@@ -20,4 +20,5 @@ checkpoints/
 leaderboard.txt
 current_team.txt
 
-docs/
+# Brainstorming specs / implementation plans (not part of the shipped project)
+docs/superpowers/

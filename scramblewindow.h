@@ -13,7 +13,13 @@ class ScrambleWindow : public QWidget {
     QVBoxLayout *layout;
     std::vector<QLineEdit*> playerInputs;
     std::vector<QLabel*> yardLabels;
+    QString playerName;
+    int currentInputIndex = 0;
+    bool valid = true;
+
 public:
     ScrambleWindow(QWidget *parent = nullptr);
+    bool isValid() const;
     void restart();
+    void skip();
 };
