@@ -18,7 +18,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 from experiments.scramble_sim import REPO_ROOT, ScrambleSim, load_roster
-from experiments.policies import greedy_pick, opportunity_cost_pick
+from experiments.policies import greedy_pick, opportunity_cost_v2_pick
 from experiments.rollout import rollout_pick
 from experiments.optimal import offline_optimum
 
@@ -42,7 +42,7 @@ def run(n_games: int, n_rollouts: int, top_k: int, seed0: int = 0):
     for i in range(n_games):
         seed = seed0 + i
         greedy[i] = _play(sim, greedy_pick, seed)
-        heur[i] = _play(sim, opportunity_cost_pick, seed)
+        heur[i] = _play(sim, opportunity_cost_v2_pick, seed)
         rng = random.Random(1_000_000 + seed)
         roll[i] = _play(sim, lambda s: rollout_pick(s, n_rollouts, top_k, rng), seed)
         opt[i] = offline_optimum(sim.team_sequence, roster)
@@ -61,7 +61,7 @@ def _fmt(x: np.ndarray) -> str:
 
 def _plot(greedy, heur, roll, opt):
     DOCS_DIR.mkdir(parents=True, exist_ok=True)
-    labels = ["Greedy", "Opportunity-cost", "Rollout (online)", "Optimum (clairvoyant)"]
+    labels = ["Greedy", "Opportunity-cost v2", "Rollout (online)", "Optimum (clairvoyant)"]
     means = [greedy.mean(), heur.mean(), roll.mean(), opt.mean()]
     errs = [_ci95(greedy), _ci95(heur), _ci95(roll), _ci95(opt)]
     fig, ax = plt.subplots(figsize=(8, 5))
@@ -96,7 +96,7 @@ def _write_doc(greedy, heur, roll, opt, n_games, n_rollouts, top_k):
         "| Policy | Mean score | % of optimum | % of greedy->optimum gap captured |",
         "|---|---|---|---|",
         f"| Greedy | {_fmt(greedy)} | {greedy.mean()/opt.mean()*100:.2f}% | 0% (baseline) |",
-        f"| Opportunity-cost | {_fmt(heur)} | {heur.mean()/opt.mean()*100:.2f}% | {frac(heur_gain):.1f}% |",
+        f"| Opportunity-cost (v2) | {_fmt(heur)} | {heur.mean()/opt.mean()*100:.2f}% | {frac(heur_gain):.1f}% |",
         f"| Rollout (online) | {_fmt(roll)} | {roll.mean()/opt.mean()*100:.2f}% | {frac(roll_gain):.1f}% |",
         f"| Offline optimum (clairvoyant) | {_fmt(opt)} | 100.00% | 100% |",
         "",

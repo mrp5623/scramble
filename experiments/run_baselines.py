@@ -13,7 +13,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 from experiments.scramble_sim import REPO_ROOT, ScrambleSim, load_roster
-from experiments.policies import greedy_pick, opportunity_cost_pick
+from experiments.policies import greedy_pick, opportunity_cost_v2_pick
 from experiments.optimal import offline_optimum
 
 DOCS_DIR = REPO_ROOT / "docs" / "experiments"
@@ -35,7 +35,7 @@ def run(n_games: int, seed0: int = 0):
     for i in range(n_games):
         seed = seed0 + i
         greedy[i] = _play(sim, greedy_pick, seed)
-        heur[i] = _play(sim, opportunity_cost_pick, seed)
+        heur[i] = _play(sim, opportunity_cost_v2_pick, seed)
         # both reset(seed) -> identical team_sequence; reuse it for the optimum
         opt[i] = offline_optimum(sim.team_sequence, roster)
         assert greedy[i] <= opt[i] + 1e-6, (greedy[i], opt[i])
@@ -97,7 +97,7 @@ def _write_doc(greedy, heur, opt, n_games):
         "| Policy | Mean score | % of optimum |",
         "|---|---|---|",
         f"| Greedy | {_fmt(greedy)} | {pct(greedy):.1f}% |",
-        f"| Opportunity-cost | {_fmt(heur)} | {pct(heur):.1f}% |",
+        f"| Opportunity-cost (v2) | {_fmt(heur)} | {pct(heur):.1f}% |",
         f"| Offline optimum (clairvoyant) | {_fmt(opt)} | 100.0% |",
         "",
         "## Paired gaps (95% CI)",
