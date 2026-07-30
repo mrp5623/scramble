@@ -6,8 +6,6 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-find_package(cpr CONFIG REQUIRED)
-find_package(LibXml2 REQUIRED)
 find_package(Qt5 COMPONENTS Widgets REQUIRED)
 
 add_executable(scramble
@@ -22,10 +20,13 @@ add_executable(scramble
 
 target_link_libraries(scramble
     PRIVATE
-        cpr::cpr
-        LibXml2::LibXml2
         Qt5::Widgets
 )
 
 target_include_directories(scramble PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
+# Ship the dataset next to the executable so it is found at runtime.
+add_custom_command(TARGET scramble POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${CMAKE_CURRENT_SOURCE_DIR}/data $<TARGET_FILE_DIR:scramble>/data
+    COMMENT "Copying data/ next to executable")
