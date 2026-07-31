@@ -28,7 +28,7 @@ def offline_optimum(team_sequence: list[str], roster: Roster) -> int:
         for i in range(n_slots):
             if not visited[i] and slots[i] in roster.qb_teams[qb]:
                 visited[i] = True
-                if match_for_slot[i] is None or try_assign(match_for_slot[i], visited):
+                if match_for_slot[i] is None or try_assign(match_for_slot[i], visited): # pyright: ignore[reportArgumentType]
                     match_for_slot[i] = qb
                     return True
         return False
