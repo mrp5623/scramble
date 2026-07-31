@@ -84,3 +84,18 @@ def test_train_cli_writes_loadable_checkpoint(tmp_path):
     blob = torch.load(ckpt, weights_only=False)
     model = ActorCritic(blob["obs_dim"], blob["n_actions"], blob["hidden"])
     model.load_state_dict(blob["state_dict"])   # loads without error
+
+
+def test_eval_cli_writes_doc_with_agent_row(tmp_path):
+    from experiments import train_model1, run_agent_eval
+
+    ckpt = tmp_path / "m.pt"
+    train_model1.main(["--updates", "2", "--batch", "4", "--out", str(ckpt),
+                       "--plot", str(tmp_path / "c.png")])
+    doc = tmp_path / "phase2-agent.md"
+    run_agent_eval.main([
+        "--checkpoint", str(ckpt), "--games", "3", "--rollouts", "5",
+        "--out", str(doc), "--plot", str(tmp_path / "scores.png"),
+    ])
+    text = doc.read_text(encoding="utf-8")
+    assert "Agent" in text and "% of optimum" in text
