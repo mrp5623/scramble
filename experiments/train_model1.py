@@ -54,11 +54,16 @@ def main(argv=None) -> str:
     p.add_argument("--seed", type=int, default=0)
     p.add_argument("--out", type=str, default=str(DEFAULT_CKPT))
     p.add_argument("--plot", type=str, default=str(DEFAULT_PLOT))
+    p.add_argument("--logdir", type=str, default=None,
+                   help="TensorBoard log dir (omit to disable), e.g. runs/model1")
+    p.add_argument("--shaping", type=float, default=0.0,
+                   help="opportunity-cost reward-shaping coefficient (0 = off, 1 = full)")
     args = p.parse_args(argv)
 
     cfg = TrainConfig(updates=args.updates, batch_episodes=args.batch, lr=args.lr,
-                      entropy_coef=args.entropy, hidden=args.hidden, seed=args.seed)
-    env = ScrambleEnv()
+                      entropy_coef=args.entropy, hidden=args.hidden, seed=args.seed,
+                      logdir=args.logdir)
+    env = ScrambleEnv(shaping_coef=args.shaping)
     result = train(lambda: env, cfg)
 
     out = Path(args.out)

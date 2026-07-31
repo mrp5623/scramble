@@ -69,15 +69,29 @@ def decode_action(sim: ScrambleSim, action: int) -> Optional[str]:
     return None
 
 
+def save_value(sim: ScrambleSim, q: str) -> float:
+    """Opportunity cost of spending QB q now = p_k * best marginal value to another team.
+
+    This is the exact quantity the v2 heuristic subtracts and that observation feature
+    index 2 exposes (before yard-scaling). Reward shaping charges the agent this cost so
+    the delayed value of saving becomes an immediate, learnable signal.
+    """
+    rels = _relevances(sim, q)
+    return _appearance_prob(sim) * (max(rels) if rels else 0.0)
+
+
 class ScrambleEnv(gym.Env):
     """Gymnasium wrapper over ScrambleSim with the engineered observation + rank action."""
 
     metadata = {"render_modes": []}
 
-    def __init__(self, roster=None, num_rounds: int = NUM_ROUNDS, seed=None):
+    def __init__(self, roster=None, num_rounds: int = NUM_ROUNDS, seed=None, shaping_coef: float = 0.0):
         super().__init__()
         self.roster = roster if roster is not None else load_roster()
         self.yard_scale = float(max(self.roster.qb_yards.values()))
+        # >0 turns on opportunity-cost reward shaping (affects the LEARNING reward only;
+        # info["raw_reward"] and sim.total_score stay the TRUE score for reporting).
+        self.shaping_coef = float(shaping_coef)
         self.sim = ScrambleSim(self.roster, num_rounds=num_rounds, seed=seed)
         # obs features are ~[0,1]; flexibility can exceed 1 for very-multi-team QBs -> loose bound
         self.observation_space = spaces.Box(low=0.0, high=2.0, shape=(OBS_DIM,), dtype=np.float32)
@@ -94,8 +108,13 @@ class ScrambleEnv(gym.Env):
     def step(self, action):
         team = self.sim.current_team
         pick = decode_action(self.sim, int(action))
+        # Opportunity-cost shaping: charge the save-value of the QB spent, computed in the
+        # PRE-step state (after the step, `pick` is used and p_k/relevances have changed).
+        shaped = 0.0
+        if self.shaping_coef and pick is not None:
+            shaped = -self.shaping_coef * save_value(self.sim, pick)
         raw_reward, done = self.sim.step(pick)
-        reward = raw_reward / self.yard_scale
+        reward = (raw_reward + shaped) / self.yard_scale
         info = {"raw_reward": raw_reward, "picked": pick, "team": team}
         obs = (
             np.zeros(OBS_DIM, dtype=np.float32)

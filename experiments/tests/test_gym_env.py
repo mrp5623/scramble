@@ -145,3 +145,34 @@ def test_env_playing_rank0_matches_greedy_score():
         sim.step(greedy_pick(sim))
     greedy_score = sim.total_score
     assert agent_score == greedy_score
+
+
+def _forced_env(shaping_coef):
+    """Same tiny roster as _forced_sim, wrapped in a ScrambleEnv with a forced schedule."""
+    r = Roster(
+        team_codes=["A", "B"],
+        team_qbs={"A": ["x", "y", "z"], "B": ["x"]},
+        qb_yards={"x": 100, "y": 60, "z": 30},
+        qb_teams={"x": {"A", "B"}, "y": {"A"}, "z": {"A"}},
+    )
+    env = ScrambleEnv(roster=r, num_rounds=5, shaping_coef=shaping_coef)
+    env.sim.team_sequence = ["A", "A", "A", "A", "A"]
+    env.sim.turn = 0
+    env.sim.used = set()
+    env.sim.total_score = 0
+    return env
+
+
+def test_shaping_off_by_default_matches_raw_reward():
+    env = _forced_env(shaping_coef=0.0)
+    _, reward, _, _, info = env.step(0)          # play x: 100 yards
+    assert info["raw_reward"] == 100             # true score
+    assert reward == pytest.approx(100 / 100.0)  # learning reward == raw / yard_scale
+
+
+def test_shaping_penalizes_opportunity_cost_but_keeps_true_reward():
+    env = _forced_env(shaping_coef=1.0)
+    # x has save-value p_k*max(rel) = 0.9375 * 100 = 93.75 (x is B's only QB).
+    _, reward, _, _, info = env.step(0)          # play x
+    assert info["raw_reward"] == 100             # TRUE score unchanged by shaping
+    assert reward == pytest.approx((100 - 93.75) / 100.0)   # penalized learning reward

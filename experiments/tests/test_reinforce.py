@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 import torch
 
 from experiments.reinforce import ActorCritic
@@ -99,3 +100,13 @@ def test_eval_cli_writes_doc_with_agent_row(tmp_path):
     ])
     text = doc.read_text(encoding="utf-8")
     assert "Agent" in text and "% of optimum" in text
+
+
+def test_train_writes_tensorboard_events(tmp_path):
+    pytest.importorskip("tensorboard")   # skip until tensorboard is installed
+    logdir = tmp_path / "tb"
+    cfg = TrainConfig(updates=2, batch_episodes=2, hidden=8, log_every=1000,
+                      logdir=str(logdir))
+    train(lambda: _BanditEnv(), cfg)
+    events = list(logdir.glob("**/events.out.tfevents.*"))
+    assert events, "expected a TensorBoard events file in the log dir"

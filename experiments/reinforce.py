@@ -10,6 +10,7 @@ The tiny 4-action space makes this converge without PPO's extra clipping machine
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from typing import Optional
 
 import numpy as np
 import torch
@@ -52,6 +53,7 @@ class TrainConfig:
     hidden: int = 64
     seed: int = 0
     log_every: int = 20
+    logdir: Optional[str] = None   # TensorBoard log dir; None disables logging
 
 
 @dataclass
@@ -90,6 +92,11 @@ def train(make_env, cfg: TrainConfig = TrainConfig()) -> TrainResult:
     n_actions = env.action_space.n
     model = ActorCritic(obs_dim, n_actions, cfg.hidden)
     opt = torch.optim.Adam(model.parameters(), lr=cfg.lr)
+
+    writer = None
+    if cfg.logdir:
+        from torch.utils.tensorboard import SummaryWriter  # lazy: only needed when logging
+        writer = SummaryWriter(cfg.logdir)
 
     curve: list[float] = []
     for update in range(cfg.updates):
@@ -140,7 +147,16 @@ def train(make_env, cfg: TrainConfig = TrainConfig()) -> TrainResult:
 
         mean_score = float(np.mean(ep_scores))
         curve.append(mean_score)
+        if writer is not None:
+            writer.add_scalar("charts/mean_score", mean_score, update)
+            writer.add_scalar("losses/total", loss.item(), update)
+            writer.add_scalar("losses/policy", policy_loss.item(), update)
+            writer.add_scalar("losses/value", value_loss.item(), update)
+            writer.add_scalar("losses/entropy", entropy.item(), update)
         if cfg.log_every and update % cfg.log_every == 0:
             print(f"update {update:4d}  mean_score={mean_score:,.1f}  loss={loss.item():.4f}")
 
+    if writer is not None:
+        writer.flush()
+        writer.close()
     return TrainResult(model=model, curve=curve)

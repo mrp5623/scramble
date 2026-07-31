@@ -120,6 +120,23 @@ def _write_doc(res, n_games, path):
     t_roll = _time_per_decision(res["sim"], lambda s: rollout_pick(s, res["n_rollouts"], 3, rng), seeds)
     t_heur = _time_per_decision(res["sim"], opportunity_cost_v2_pick, seeds)
 
+    # Data-driven speed narrative: the "fast + accurate" claim only holds if the agent
+    # actually captures gap. State it plainly either way instead of assuming success.
+    frac_a = frac(a)
+    speedup = t_roll / max(t_agent, 1e-9)
+    if frac_a >= 15.0:
+        speed_line = (
+            f"- The agent captures **{frac_a:.1f}%** of the gap at **{t_agent:.4f} ms/decision** "
+            f"vs the rollout's **{t_roll:.4f} ms** (**{speedup:.0f}x** faster) - rollout-level "
+            "accuracy at a fraction of the cost: the \"rollout accuracy at heuristic speed\" result."
+        )
+    else:
+        speed_line = (
+            f"- The agent decides in **{t_agent:.4f} ms** vs the rollout's **{t_roll:.4f} ms** "
+            f"(**{speedup:.0f}x** faster), but captures only **{frac_a:.1f}%** of the gap - the "
+            "speed advantage is moot until it beats greedy."
+        )
+
     lines = [
         "# Phase 2 - Model #1 (Agent v1): engineered save-value, PyTorch REINFORCE",
         "",
@@ -149,9 +166,7 @@ def _write_doc(res, n_games, path):
         f"| **Agent (Model #1)** | {t_agent:.4f} |",
         f"| Rollout | {t_roll:.4f} |",
         "",
-        f"- The agent is **{t_roll / max(t_agent, 1e-9):.0f}x** faster per decision than the "
-        "rollout while capturing a comparable share of the gap - the \"rollout accuracy at "
-        "heuristic speed\" result.",
+        speed_line,
         "",
         "![Scores](phase2_scores.png)",
         "",

@@ -15,6 +15,7 @@ caches/
 logs/
 saved/
 checkpoints/
+runs/
 
 # Runtime state written by the game
 leaderboard.txt
