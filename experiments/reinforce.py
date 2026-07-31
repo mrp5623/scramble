@@ -10,7 +10,7 @@ The tiny 4-action space makes this converge without PPO's extra clipping machine
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Optional
+from typing import Callable, Optional
 
 import numpy as np
 import torch
@@ -73,6 +73,18 @@ def compute_returns(rewards, gamma: float = 1.0):
     return returns
 
 
+def _crn_advantages(agent_totals, baseline_totals) -> np.ndarray:
+    """Common-random-numbers advantage: each episode's margin over a reference policy
+    that played the *same* draw sequence, normalized across the batch.
+
+    Because agent and reference saw identical team draws, the shared draw-luck cancels in
+    the subtraction -- what's left is pure skill difference. This is the control variate that
+    lets the gradient hear the ~0.5% edge our unpaired episode returns were drowning.
+    """
+    m = np.asarray(agent_totals, dtype=np.float64) - np.asarray(baseline_totals, dtype=np.float64)
+    return (m - m.mean()) / (m.std() + 1e-8)
+
+
 def select_action(model, obs, mask, deterministic: bool = False) -> int:
     obs_t = torch.as_tensor(np.asarray(obs), dtype=torch.float32)
     mask_t = torch.as_tensor(np.asarray(mask), dtype=torch.bool)
@@ -83,9 +95,21 @@ def select_action(model, obs, mask, deterministic: bool = False) -> int:
         return int(dist.sample().item())
 
 
-def train(make_env, cfg: TrainConfig = TrainConfig()) -> TrainResult:
+def train(
+    make_env,
+    cfg: TrainConfig = TrainConfig(),
+    baseline_fn: Optional[Callable[[int], float]] = None,
+) -> TrainResult:
+    """Train the policy with REINFORCE + a value baseline.
+
+    If `baseline_fn` is given, switch to the common-random-numbers estimator: each episode
+    is run at an explicit seed, `baseline_fn(seed)` returns a reference policy's score on the
+    *same* seed, and the per-episode margin (agent - reference) replaces the value-baseline
+    advantage. The value head is left untrained in this mode (the reference is the baseline).
+    """
     torch.manual_seed(cfg.seed)
     np.random.seed(cfg.seed)
+    ep_rng = np.random.default_rng(cfg.seed)   # draws per-episode seeds for CRN pairing
 
     env = make_env()
     obs_dim = env.observation_space.shape[0]
@@ -102,10 +126,16 @@ def train(make_env, cfg: TrainConfig = TrainConfig()) -> TrainResult:
     for update in range(cfg.updates):
         b_obs, b_mask, b_act, b_ret = [], [], [], []
         ep_scores = []
+        ep_lens, ep_baselines = [], []   # CRN-only bookkeeping
 
         # --- collect a batch of complete episodes under the current policy ---
         for _ in range(cfg.batch_episodes):
-            obs, _ = env.reset()
+            if baseline_fn is not None:
+                ep_seed = int(ep_rng.integers(0, 2**31 - 1))
+                obs, _ = env.reset(seed=ep_seed)
+                ep_baselines.append(baseline_fn(ep_seed))   # reference score on the SAME draw
+            else:
+                obs, _ = env.reset()
             done = False
             ep_obs, ep_mask, ep_act, ep_rew = [], [], [], []
             raw_total = 0.0
@@ -124,6 +154,8 @@ def train(make_env, cfg: TrainConfig = TrainConfig()) -> TrainResult:
             b_ret.extend(compute_returns(ep_rew, cfg.gamma))
             b_obs.extend(ep_obs); b_mask.extend(ep_mask); b_act.extend(ep_act)
             ep_scores.append(raw_total)
+            if baseline_fn is not None:
+                ep_lens.append(len(ep_rew))
 
         # --- one policy-gradient update on the whole batch ---
         obs_b = torch.as_tensor(np.array(b_obs), dtype=torch.float32)
@@ -133,12 +165,19 @@ def train(make_env, cfg: TrainConfig = TrainConfig()) -> TrainResult:
 
         dist, values = model.distribution(obs_b, mask_b)
         logp = dist.log_prob(act_b)
-        adv = ret_b - values.detach()                       # advantage
-        adv = (adv - adv.mean()) / (adv.std() + 1e-8)       # normalize -> stable gradients
-
-        policy_loss = -(logp * adv).mean()
-        value_loss = ((values - ret_b) ** 2).mean()
         entropy = dist.entropy().mean()
+
+        if baseline_fn is not None:
+            # CRN: per-episode margin over the reference, broadcast to that episode's steps.
+            ep_adv = _crn_advantages(ep_scores, ep_baselines)
+            adv = torch.as_tensor(np.repeat(ep_adv, ep_lens), dtype=torch.float32)
+            policy_loss = -(logp * adv).mean()
+            value_loss = torch.zeros(())                    # value head unused in CRN mode
+        else:
+            adv = ret_b - values.detach()                   # advantage
+            adv = (adv - adv.mean()) / (adv.std() + 1e-8)   # normalize -> stable gradients
+            policy_loss = -(logp * adv).mean()
+            value_loss = ((values - ret_b) ** 2).mean()
         loss = policy_loss + cfg.value_coef * value_loss - cfg.entropy_coef * entropy
 
         opt.zero_grad()
@@ -147,14 +186,23 @@ def train(make_env, cfg: TrainConfig = TrainConfig()) -> TrainResult:
 
         mean_score = float(np.mean(ep_scores))
         curve.append(mean_score)
+        # In CRN mode this is the metric that matters: mean yards the agent beats greedy by,
+        # on identical draws (positive => beating greedy; ~0 => matching it).
+        mean_margin = (
+            float(np.mean(np.asarray(ep_scores) - np.asarray(ep_baselines)))
+            if baseline_fn is not None else 0.0
+        )
         if writer is not None:
             writer.add_scalar("charts/mean_score", mean_score, update)
+            if baseline_fn is not None:
+                writer.add_scalar("charts/mean_margin_vs_greedy", mean_margin, update)
             writer.add_scalar("losses/total", loss.item(), update)
             writer.add_scalar("losses/policy", policy_loss.item(), update)
             writer.add_scalar("losses/value", value_loss.item(), update)
             writer.add_scalar("losses/entropy", entropy.item(), update)
         if cfg.log_every and update % cfg.log_every == 0:
-            print(f"update {update:4d}  mean_score={mean_score:,.1f}  loss={loss.item():.4f}")
+            extra = f"  margin_vs_greedy={mean_margin:+,.0f}" if baseline_fn is not None else ""
+            print(f"update {update:4d}  mean_score={mean_score:,.1f}  loss={loss.item():.4f}{extra}")
 
     if writer is not None:
         writer.flush()

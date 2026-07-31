@@ -14,12 +14,31 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import torch
 
-from experiments.scramble_sim import REPO_ROOT
+from experiments.scramble_sim import REPO_ROOT, ScrambleSim
 from experiments.gym_env import ScrambleEnv
+from experiments.policies import greedy_pick
 from experiments.reinforce import TrainConfig, train
 
 DEFAULT_CKPT = REPO_ROOT / "experiments" / "checkpoints" / "model1.pt"
 DEFAULT_PLOT = REPO_ROOT / "docs" / "experiments" / "model1_training.png"
+
+
+def make_greedy_baseline(roster, num_rounds):
+    """Return baseline_fn(seed) = greedy's TRUE score on the same draw sequence as `seed`.
+
+    Reused across episodes via one throwaway sim; deterministic because ScrambleSim.reset(seed)
+    regenerates the identical team sequence for a given (roster, seed). This is the control
+    variate the CRN estimator subtracts to cancel draw-luck.
+    """
+    ref = ScrambleSim(roster, num_rounds=num_rounds)
+
+    def baseline_fn(seed: int) -> float:
+        ref.reset(seed)
+        while not ref.done:
+            ref.step(greedy_pick(ref))
+        return float(ref.total_score)
+
+    return baseline_fn
 
 
 def _rolling(x, w=25):
@@ -58,13 +77,16 @@ def main(argv=None) -> str:
                    help="TensorBoard log dir (omit to disable), e.g. runs/model1")
     p.add_argument("--shaping", type=float, default=0.0,
                    help="opportunity-cost reward-shaping coefficient (0 = off, 1 = full)")
+    p.add_argument("--crn", action="store_true",
+                   help="use the common-random-numbers greedy baseline (cancels draw-luck)")
     args = p.parse_args(argv)
 
     cfg = TrainConfig(updates=args.updates, batch_episodes=args.batch, lr=args.lr,
                       entropy_coef=args.entropy, hidden=args.hidden, seed=args.seed,
                       logdir=args.logdir)
     env = ScrambleEnv(shaping_coef=args.shaping)
-    result = train(lambda: env, cfg)
+    baseline_fn = make_greedy_baseline(env.roster, env.sim.num_rounds) if args.crn else None
+    result = train(lambda: env, cfg, baseline_fn=baseline_fn)
 
     out = Path(args.out)
     out.parent.mkdir(parents=True, exist_ok=True)

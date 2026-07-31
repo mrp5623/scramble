@@ -30,7 +30,7 @@ def test_masked_actions_get_near_zero_probability():
 
 
 from experiments.reinforce import (
-    TrainConfig, compute_returns, train, select_action,
+    TrainConfig, compute_returns, train, select_action, _crn_advantages,
 )
 
 
@@ -66,6 +66,33 @@ def test_training_loop_learns_bandit():
     result = train(lambda: _BanditEnv(), cfg)
     assert result.curve[-1] > 0.8            # learned to pick the rewarding action
     # deterministic selection picks the best action
+    obs = np.zeros(2, dtype=np.float32)
+    mask = np.array([True, True, True])
+    assert select_action(result.model, obs, mask, deterministic=True) == 0
+
+
+def test_crn_advantages_normalizes_margins():
+    # margins = agent - baseline = [10, -10]; normalized to mean 0, unit std -> [1, -1]
+    adv = _crn_advantages([110.0, 90.0], [100.0, 100.0])
+    np.testing.assert_allclose(adv, [1.0, -1.0], atol=1e-6)
+    assert abs(float(np.mean(adv))) < 1e-6
+
+
+def test_crn_advantages_positive_when_beating_baseline():
+    # Episode that beat greedy gets a positive advantage; one that lost gets negative.
+    adv = _crn_advantages([120.0, 100.0, 80.0], [100.0, 100.0, 100.0])
+    assert adv[0] > 0        # +20 over greedy
+    assert adv[2] < 0        # -20 under greedy
+    assert abs(float(np.mean(adv))) < 1e-6
+
+
+def test_crn_baseline_path_learns_bandit():
+    """With a greedy-style control-variate baseline, the loop still learns action 0."""
+    cfg = TrainConfig(updates=120, batch_episodes=16, lr=0.05, entropy_coef=0.0,
+                      hidden=16, seed=0, log_every=1000)
+    # bandit: action 0 -> raw_reward 1 else 0; constant baseline 0.5 (like greedy's expected score)
+    result = train(lambda: _BanditEnv(), cfg, baseline_fn=lambda seed: 0.5)
+    assert result.curve[-1] > 0.8
     obs = np.zeros(2, dtype=np.float32)
     mask = np.array([True, True, True])
     assert select_action(result.model, obs, mask, deterministic=True) == 0
