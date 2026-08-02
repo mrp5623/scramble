@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 import torch
 
-from experiments.reinforce import ActorCritic
+from experiments.rl.reinforce import ActorCritic
 
 
 def test_forward_shapes_single_and_batch():
@@ -29,7 +29,7 @@ def test_masked_actions_get_near_zero_probability():
     assert np.isclose(probs.sum(), 1.0, atol=1e-5)
 
 
-from experiments.reinforce import (
+from experiments.rl.reinforce import (
     TrainConfig, compute_returns, train, select_action, _crn_advantages,
 )
 
@@ -100,8 +100,8 @@ def test_crn_baseline_path_learns_bandit():
 
 def test_train_cli_writes_loadable_checkpoint(tmp_path):
     import torch
-    from experiments import train_model1
-    from experiments.reinforce import ActorCritic
+    from experiments.scripts import train_model1
+    from experiments.rl.reinforce import ActorCritic
 
     ckpt = tmp_path / "m.pt"
     train_model1.main([
@@ -115,7 +115,7 @@ def test_train_cli_writes_loadable_checkpoint(tmp_path):
 
 
 def test_eval_cli_writes_doc_with_agent_row(tmp_path):
-    from experiments import train_model1, run_agent_eval
+    from experiments.scripts import train_model1, run_agent_eval
 
     ckpt = tmp_path / "m.pt"
     train_model1.main(["--updates", "2", "--batch", "4", "--out", str(ckpt),

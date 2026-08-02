@@ -17,7 +17,7 @@ from __future__ import annotations
 import random
 from typing import Optional
 
-from experiments.scramble_sim import Roster, ScrambleSim
+from experiments.sim.scramble_sim import Roster, ScrambleSim
 
 
 def _greedy_score_on_sequence(roster: Roster, used: set[str], sequence: list[str]) -> int:

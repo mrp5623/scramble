@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from typing import Optional
 
-from experiments.scramble_sim import Roster
+from experiments.sim.scramble_sim import Roster
 
 
 def offline_optimum(team_sequence: list[str], roster: Roster) -> int:

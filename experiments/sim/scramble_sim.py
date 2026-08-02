@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
+REPO_ROOT = Path(__file__).resolve().parents[2]  # experiments/sim/ -> experiments/ -> repo root
 DATA_PATH = REPO_ROOT / "data" / "nfl_qbs.json"
 NUM_ROUNDS = 25
 

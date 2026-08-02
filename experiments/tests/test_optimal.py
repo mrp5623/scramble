@@ -1,7 +1,7 @@
 import random
 import networkx as nx
-from experiments.scramble_sim import Roster, load_roster
-from experiments.optimal import offline_optimum
+from experiments.sim.scramble_sim import Roster, load_roster
+from experiments.baselines.optimal import offline_optimum
 from experiments.tests.test_sim import tiny_roster
 
 
@@ -59,8 +59,8 @@ def test_matches_brute_and_networkx_on_random_small():
 
 
 def test_optimum_at_least_greedy_on_real_sequences():
-    from experiments.scramble_sim import ScrambleSim
-    from experiments.policies import greedy_pick  # available after Task 3
+    from experiments.sim.scramble_sim import ScrambleSim
+    from experiments.baselines.policies import greedy_pick  # available after Task 3
     r = load_roster()
     sim = ScrambleSim(r)
     for seed in range(20):

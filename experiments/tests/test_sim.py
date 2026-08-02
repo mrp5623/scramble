@@ -1,6 +1,6 @@
 import numpy as np
 import pytest
-from experiments.scramble_sim import Roster, ScrambleSim, load_roster, NUM_ROUNDS
+from experiments.sim.scramble_sim import Roster, ScrambleSim, load_roster, NUM_ROUNDS
 
 
 def tiny_roster() -> Roster:

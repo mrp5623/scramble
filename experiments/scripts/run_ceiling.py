@@ -5,7 +5,7 @@ key question this answers: of the clairvoyant `optimum - greedy` gap, how much c
 online policy actually capture? That sets the realistic target for RL.
 
 Usage (from repo root):
-    /c/Python313/python -m experiments.run_ceiling --games 500 --rollouts 30
+    /c/Python313/python -m experiments.scripts.run_ceiling --games 500 --rollouts 30
 """
 from __future__ import annotations
 
@@ -17,12 +17,12 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-from experiments.scramble_sim import REPO_ROOT, ScrambleSim, load_roster
-from experiments.policies import greedy_pick, opportunity_cost_v2_pick
-from experiments.rollout import rollout_pick
-from experiments.optimal import offline_optimum
+from experiments.sim.scramble_sim import REPO_ROOT, ScrambleSim, load_roster
+from experiments.baselines.policies import greedy_pick, opportunity_cost_v2_pick
+from experiments.baselines.rollout import rollout_pick
+from experiments.baselines.optimal import offline_optimum
 
-DOCS_DIR = REPO_ROOT / "docs" / "experiments"
+DOCS_DIR = REPO_ROOT / "docs" / "experiments" / "phase1"
 
 
 def _play(sim: ScrambleSim, policy, seed: int) -> int:

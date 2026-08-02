@@ -1,7 +1,7 @@
 """Evaluate Model #1 vs baselines on identical seeds, and time per-decision inference.
 
 Usage (from repo root):
-    /c/Python313/python -m experiments.run_agent_eval --checkpoint experiments/checkpoints/model1.pt --games 1000
+    /c/Python313/python -m experiments.scripts.run_agent_eval --checkpoint experiments/checkpoints/model1.pt --games 1000
 """
 from __future__ import annotations
 
@@ -16,14 +16,14 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import torch
 
-from experiments.scramble_sim import REPO_ROOT, ScrambleSim, load_roster
-from experiments.gym_env import build_observation, legal_action_mask, decode_action
-from experiments.reinforce import ActorCritic, select_action
-from experiments.policies import greedy_pick, opportunity_cost_v2_pick
-from experiments.rollout import rollout_pick
-from experiments.optimal import offline_optimum
+from experiments.sim.scramble_sim import REPO_ROOT, ScrambleSim, load_roster
+from experiments.sim.gym_env import build_observation, legal_action_mask, decode_action
+from experiments.rl.reinforce import ActorCritic, select_action
+from experiments.baselines.policies import greedy_pick, opportunity_cost_v2_pick
+from experiments.baselines.rollout import rollout_pick
+from experiments.baselines.optimal import offline_optimum
 
-DOCS_DIR = REPO_ROOT / "docs" / "experiments"
+DOCS_DIR = REPO_ROOT / "docs" / "experiments" / "phase2"
 
 
 def load_agent(path):

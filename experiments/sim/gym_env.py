@@ -13,8 +13,8 @@ import numpy as np
 import gymnasium as gym
 from gymnasium import spaces
 
-from experiments.scramble_sim import NUM_ROUNDS, ScrambleSim, load_roster
-from experiments.policies import _appearance_prob, _relevances
+from experiments.sim.scramble_sim import NUM_ROUNDS, ScrambleSim, load_roster
+from experiments.baselines.policies import _appearance_prob, _relevances
 
 N_CANDIDATES = 3          # per-team ranks the agent chooses among
 FEATS_PER_CANDIDATE = 4   # [yards, drop-to-next, save-value, flexibility]

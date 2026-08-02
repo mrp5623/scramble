@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from typing import Optional
 
-from experiments.scramble_sim import ScrambleSim
+from experiments.sim.scramble_sim import ScrambleSim
 
 
 def greedy_pick(sim: ScrambleSim) -> Optional[str]:

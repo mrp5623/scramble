@@ -1,7 +1,7 @@
 """Benchmark greedy vs opportunity-cost heuristic vs offline optimum over seeded games.
 
 Usage (from repo root):
-    /c/Python313/python -m experiments.run_baselines --games 10000
+    /c/Python313/python -m experiments.scripts.run_baselines --games 10000
 """
 from __future__ import annotations
 
@@ -12,11 +12,11 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-from experiments.scramble_sim import REPO_ROOT, ScrambleSim, load_roster
-from experiments.policies import greedy_pick, opportunity_cost_v2_pick
-from experiments.optimal import offline_optimum
+from experiments.sim.scramble_sim import REPO_ROOT, ScrambleSim, load_roster
+from experiments.baselines.policies import greedy_pick, opportunity_cost_v2_pick
+from experiments.baselines.optimal import offline_optimum
 
-DOCS_DIR = REPO_ROOT / "docs" / "experiments"
+DOCS_DIR = REPO_ROOT / "docs" / "experiments" / "phase1"
 
 
 def _play(sim: ScrambleSim, policy, seed: int) -> int:

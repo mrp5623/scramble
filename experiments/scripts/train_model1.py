@@ -1,7 +1,7 @@
 """Train Model #1 and save a checkpoint + training-curve plot.
 
 Usage (from repo root):
-    /c/Python313/python -m experiments.train_model1 --updates 1500 --batch 64
+    /c/Python313/python -m experiments.scripts.train_model1 --updates 1500 --batch 64
 """
 from __future__ import annotations
 
@@ -14,13 +14,13 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import torch
 
-from experiments.scramble_sim import REPO_ROOT, ScrambleSim
-from experiments.gym_env import ScrambleEnv
-from experiments.policies import greedy_pick
-from experiments.reinforce import TrainConfig, train
+from experiments.sim.scramble_sim import REPO_ROOT, ScrambleSim
+from experiments.sim.gym_env import ScrambleEnv
+from experiments.baselines.policies import greedy_pick
+from experiments.rl.reinforce import TrainConfig, train
 
 DEFAULT_CKPT = REPO_ROOT / "experiments" / "checkpoints" / "model1.pt"
-DEFAULT_PLOT = REPO_ROOT / "docs" / "experiments" / "model1_training.png"
+DEFAULT_PLOT = REPO_ROOT / "docs" / "experiments" / "phase2" / "model1_training.png"
 
 
 def make_greedy_baseline(roster, num_rounds):

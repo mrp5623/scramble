@@ -1,8 +1,8 @@
 import random
 
-from experiments.scramble_sim import ScrambleSim, load_roster
-from experiments.rollout import rollout_pick, greedy_rollout
-from experiments.policies import greedy_pick
+from experiments.sim.scramble_sim import ScrambleSim, load_roster
+from experiments.baselines.rollout import rollout_pick, greedy_rollout
+from experiments.baselines.policies import greedy_pick
 from experiments.tests.test_sim import tiny_roster
 
 

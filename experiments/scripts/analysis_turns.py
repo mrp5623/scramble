@@ -7,7 +7,7 @@ scrubs. The current opportunity-cost heuristic's edge peaks early and turns nega
 high turn counts (it over-saves multi-team QBs) -- motivating the heuristic tuning.
 
 Usage (from repo root):
-    /c/Python313/python -m experiments.analysis_turns --games 1000
+    /c/Python313/python -m experiments.scripts.analysis_turns --games 1000
 """
 from __future__ import annotations
 
@@ -18,11 +18,11 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-from experiments.scramble_sim import REPO_ROOT, ScrambleSim, load_roster
-from experiments.policies import greedy_pick, opportunity_cost_pick
-from experiments.optimal import offline_optimum
+from experiments.sim.scramble_sim import REPO_ROOT, ScrambleSim, load_roster
+from experiments.baselines.policies import greedy_pick, opportunity_cost_pick
+from experiments.baselines.optimal import offline_optimum
 
-DOCS_DIR = REPO_ROOT / "docs" / "experiments"
+DOCS_DIR = REPO_ROOT / "docs" / "experiments" / "phase1"
 TURN_VALUES = [5, 10, 15, 20, 25, 30, 40, 50, 75, 100]
 
 

@@ -1,9 +1,9 @@
 import numpy as np
 import pytest
 
-from experiments.scramble_sim import Roster, ScrambleSim
-from experiments.policies import _appearance_prob, _relevances
-from experiments.gym_env import (
+from experiments.sim.scramble_sim import Roster, ScrambleSim
+from experiments.baselines.policies import _appearance_prob, _relevances
+from experiments.sim.gym_env import (
     OBS_DIM, N_ACTIONS,
     build_observation, legal_action_mask, decode_action,
 )
@@ -94,9 +94,9 @@ def test_decode_action_maps_rank_to_qb():
     assert decode_action(sim, 1) is None       # illegal rank -> treated as skip
 
 
-from experiments.scramble_sim import load_roster
-from experiments.policies import greedy_pick
-from experiments.gym_env import ScrambleEnv
+from experiments.sim.scramble_sim import load_roster
+from experiments.baselines.policies import greedy_pick
+from experiments.sim.gym_env import ScrambleEnv
 
 
 def test_env_reset_returns_obs_and_info():

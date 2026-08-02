@@ -1,6 +1,6 @@
-from experiments.scramble_sim import Roster, ScrambleSim
-from experiments.optimal import offline_optimum
-from experiments.policies import greedy_pick, opportunity_cost_pick, opportunity_cost_v2_pick
+from experiments.sim.scramble_sim import Roster, ScrambleSim
+from experiments.baselines.optimal import offline_optimum
+from experiments.baselines.policies import greedy_pick, opportunity_cost_pick, opportunity_cost_v2_pick
 from experiments.tests.test_sim import tiny_roster
 
 
