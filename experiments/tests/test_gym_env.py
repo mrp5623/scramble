@@ -4,8 +4,8 @@ import pytest
 from experiments.sim.scramble_sim import Roster, ScrambleSim
 from experiments.baselines.policies import _appearance_prob, _relevances
 from experiments.sim.gym_env import (
-    OBS_DIM, N_ACTIONS,
-    build_observation, legal_action_mask, decode_action,
+    OBS_DIM, OBS_DIM_SHUFFLED, N_ACTIONS,
+    candidate_order, build_observation, legal_action_mask, decode_action,
 )
 
 
@@ -176,3 +176,65 @@ def test_shaping_penalizes_opportunity_cost_but_keeps_true_reward():
     _, reward, _, _, info = env.step(0)          # play x
     assert info["raw_reward"] == 100             # TRUE score unchanged by shaping
     assert reward == pytest.approx((100 - 93.75) / 100.0)   # penalized learning reward
+
+
+# --- Shuffle mode: candidate order + 11-dim layout (Task 1) ---
+
+def _sim_at(seed=0):
+    sim = ScrambleSim(load_roster()); sim.reset(seed)
+    return sim
+
+
+def test_candidate_order_sorted_when_no_rng():
+    sim = _sim_at()
+    assert candidate_order(sim) == sim.available()[:3]
+
+
+def test_candidate_order_is_permutation_of_topN():
+    sim = _sim_at()
+    order = candidate_order(sim, np.random.default_rng(123))
+    assert sorted(order) == sorted(sim.available()[:3])
+
+
+def test_candidate_order_seed_is_deterministic():
+    sim = _sim_at()
+    a = candidate_order(sim, np.random.default_rng(7))
+    b = candidate_order(sim, np.random.default_rng(7))
+    assert a == b
+
+
+def test_shuffled_obs_is_11_dim_and_blocks_track_slots():
+    sim = _sim_at()
+    scale = float(max(sim.roster.qb_yards.values()))
+    order = candidate_order(sim, np.random.default_rng(1))
+    obs = build_observation(sim, scale, order)
+    assert obs.shape == (OBS_DIM_SHUFFLED,)
+    # slot i's yards feature (index 3*i) must equal that slot's QB, proving the
+    # blocks were reordered to match `order` (not left in sorted order).
+    for i, q in enumerate(order):
+        assert obs[3 * i] == np.float32(sim.roster.qb_yards[q] / scale)
+
+
+def test_decode_action_honors_order():
+    sim = _sim_at()
+    order = candidate_order(sim, np.random.default_rng(2))
+    for i, q in enumerate(order):
+        assert decode_action(sim, i, order) == q
+
+
+def test_greedy_pick_is_findable_from_shuffled_obs():
+    # The max-yards candidate is somewhere in the shuffled slots; the slot whose
+    # yards feature is largest must decode to greedy's pick.
+    sim = _sim_at(5)
+    scale = float(max(sim.roster.qb_yards.values()))
+    order = candidate_order(sim, np.random.default_rng(9))
+    obs = build_observation(sim, scale, order)
+    yard_feats = [obs[3 * i] for i in range(len(order))]
+    best_slot = int(np.argmax(yard_feats))
+    assert decode_action(sim, best_slot, order) == greedy_pick(sim)
+
+
+def test_legacy_obs_unchanged():
+    sim = _sim_at()
+    scale = float(max(sim.roster.qb_yards.values()))
+    assert build_observation(sim, scale).shape == (OBS_DIM,)  # order=None -> 14

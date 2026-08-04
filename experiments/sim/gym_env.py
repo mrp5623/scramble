@@ -17,55 +17,97 @@ from experiments.sim.scramble_sim import NUM_ROUNDS, ScrambleSim, load_roster
 from experiments.baselines.policies import _appearance_prob, _relevances
 
 N_CANDIDATES = 3          # per-team ranks the agent chooses among
-FEATS_PER_CANDIDATE = 4   # [yards, drop-to-next, save-value, flexibility]
+FEATS_PER_CANDIDATE = 4   # legacy sorted layout: [yards, drop-to-next, save-value, flexibility]
 N_GLOBAL = 2              # [turns-remaining, appearance-prob]
 OBS_DIM = N_CANDIDATES * FEATS_PER_CANDIDATE + N_GLOBAL   # 14
 N_ACTIONS = N_CANDIDATES + 1                              # 3 ranks + skip
 SKIP_ACTION = N_CANDIDATES                                # == 3
 
+# Shuffled layout drops "drop-to-next" (it leaks rank: only the best QB has a positive
+# gap to the next). Per candidate: [yards, save-value, flexibility]. With the slots
+# shuffled, position carries no ranking signal, so the agent must READ the yards to
+# find the greedy pick instead of always taking slot 0.
+FEATS_SHUFFLED = 3
+OBS_DIM_SHUFFLED = N_CANDIDATES * FEATS_SHUFFLED + N_GLOBAL   # 11
 
-def build_observation(sim: ScrambleSim, yard_scale: float) -> np.ndarray:
-    """14 engineered floats describing the current decision (see module docstring)."""
+
+def candidate_order(sim: ScrambleSim, rng=None) -> list[str]:
+    """Top-N available QBs in slot order. With `rng`, shuffle them so 'slot 0' is no
+    longer 'the best QB' -- the agent must read the features to find the max. Without
+    `rng`, returns sorted-by-yards (the legacy positional layout)."""
+    avail = sim.available()[:N_CANDIDATES]
+    if rng is not None and len(avail) > 1:
+        avail = [avail[i] for i in rng.permutation(len(avail))]
+    return avail
+
+
+def build_observation(sim: ScrambleSim, yard_scale: float, order=None) -> np.ndarray:
+    """Engineered observation for the current decision (see module docstring).
+
+    order=None -> legacy 14-dim sorted layout, 4 feats/candidate incl. drop-to-next.
+    order=list -> shuffled 11-dim layout, 3 feats/candidate [yards, save_value, flexibility];
+                  candidate blocks follow `order`, so slot position carries no ranking signal.
+    """
     r = sim.roster
-    avail = sim.available()          # QBs for current team, sorted by yards desc
     p_k = _appearance_prob(sim)
     feats: list[float] = []
-    for i in range(N_CANDIDATES):
-        if i < len(avail):
-            q = avail[i]
-            yards = r.qb_yards[q]
-            next_yards = r.qb_yards[avail[i + 1]] if i + 1 < len(avail) else 0
-            rels = _relevances(sim, q)
-            save_value = p_k * (max(rels) if rels else 0.0)
-            feats += [
-                yards / yard_scale,
-                (yards - next_yards) / yard_scale,
-                save_value / yard_scale,
-                len(rels) / 4.0,
-            ]
-        else:
-            feats += [0.0, 0.0, 0.0, 0.0]
+    if order is None:
+        avail = sim.available()          # QBs for current team, sorted by yards desc
+        for i in range(N_CANDIDATES):
+            if i < len(avail):
+                q = avail[i]
+                yards = r.qb_yards[q]
+                next_yards = r.qb_yards[avail[i + 1]] if i + 1 < len(avail) else 0
+                rels = _relevances(sim, q)
+                save_value = p_k * (max(rels) if rels else 0.0)
+                feats += [
+                    yards / yard_scale,
+                    (yards - next_yards) / yard_scale,
+                    save_value / yard_scale,
+                    len(rels) / 4.0,
+                ]
+            else:
+                feats += [0.0, 0.0, 0.0, 0.0]
+    else:
+        for i in range(N_CANDIDATES):
+            if i < len(order):
+                q = order[i]
+                rels = _relevances(sim, q)
+                save_value = p_k * (max(rels) if rels else 0.0)
+                feats += [
+                    r.qb_yards[q] / yard_scale,
+                    save_value / yard_scale,
+                    len(rels) / 4.0,
+                ]
+            else:
+                feats += [0.0, 0.0, 0.0]
     feats.append(sim.turns_remaining() / sim.num_rounds)
     feats.append(p_k)
     return np.asarray(feats, dtype=np.float32)
 
 
-def legal_action_mask(sim: ScrambleSim) -> np.ndarray:
-    """Boolean mask over Discrete(4): rank i legal iff >= i+1 QBs available; skip always legal."""
-    n = len(sim.available())
+def legal_action_mask(sim: ScrambleSim, order=None) -> np.ndarray:
+    """Boolean mask over Discrete(4): rank i legal iff >= i+1 QBs available; skip always legal.
+
+    With `order` (shuffle mode), legality counts the shuffled slots instead of raw availables.
+    """
+    n = len(sim.available()) if order is None else len(order)
     mask = np.zeros(N_ACTIONS, dtype=bool)
     mask[:N_CANDIDATES] = np.arange(N_CANDIDATES) < n
     mask[SKIP_ACTION] = True
     return mask
 
 
-def decode_action(sim: ScrambleSim, action: int) -> Optional[str]:
-    """Map a rank action to a QB name; skip or an illegal rank -> None."""
+def decode_action(sim: ScrambleSim, action: int, order=None) -> Optional[str]:
+    """Map a slot action to a QB name; skip or an illegal slot -> None.
+
+    order=None -> slots are sorted-by-yards (legacy); order=list -> slots follow `order`.
+    """
     if action == SKIP_ACTION:
         return None
-    avail = sim.available()
-    if 0 <= action < len(avail):
-        return avail[action]
+    candidates = sim.available() if order is None else order
+    if 0 <= action < len(candidates):
+        return candidates[action]
     return None
 
 
