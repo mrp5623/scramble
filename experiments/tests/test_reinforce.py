@@ -98,6 +98,23 @@ def test_crn_baseline_path_learns_bandit():
     assert select_action(result.model, obs, mask, deterministic=True) == 0
 
 
+def test_checkpoint_cb_fires_at_expected_updates():
+    """Callback fires at update 0 (random init), every checkpoint_every, and the final update."""
+    seen = []
+    cfg = TrainConfig(updates=5, batch_episodes=2, checkpoint_every=2, log_every=0)
+    train(lambda: _BanditEnv(), cfg,
+          checkpoint_cb=lambda update, model: seen.append(update))
+    assert seen == [0, 2, 4]
+
+
+def test_checkpoint_cb_not_called_when_every_is_zero():
+    seen = []
+    cfg = TrainConfig(updates=3, batch_episodes=2, checkpoint_every=0, log_every=0)
+    train(lambda: _BanditEnv(), cfg,
+          checkpoint_cb=lambda update, model: seen.append(update))
+    assert seen == []
+
+
 def test_train_cli_writes_loadable_checkpoint(tmp_path):
     import torch
     from experiments.scripts import train_model1

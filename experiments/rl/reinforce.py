@@ -54,6 +54,7 @@ class TrainConfig:
     seed: int = 0
     log_every: int = 20
     logdir: Optional[str] = None   # TensorBoard log dir; None disables logging
+    checkpoint_every: int = 0      # >0: fire checkpoint_cb every N updates (0 disables)
 
 
 @dataclass
@@ -99,6 +100,7 @@ def train(
     make_env,
     cfg: TrainConfig = TrainConfig(),
     baseline_fn: Optional[Callable[[int], float]] = None,
+    checkpoint_cb: Optional[Callable[[int, "ActorCritic"], None]] = None,
 ) -> TrainResult:
     """Train the policy with REINFORCE + a value baseline.
 
@@ -122,8 +124,13 @@ def train(
         from torch.utils.tensorboard import SummaryWriter  # lazy: only needed when logging
         writer = SummaryWriter(cfg.logdir)
 
+    def _maybe_checkpoint(u: int) -> None:
+        if checkpoint_cb is not None and cfg.checkpoint_every > 0 and u % cfg.checkpoint_every == 0:
+            checkpoint_cb(u, model)   # snapshot the model as it stands BEFORE this update's step
+
     curve: list[float] = []
     for update in range(cfg.updates):
+        _maybe_checkpoint(update)   # update 0 captures the random init (curve's left anchor)
         b_obs, b_mask, b_act, b_ret = [], [], [], []
         ep_scores = []
         ep_lens, ep_baselines = [], []   # CRN-only bookkeeping
@@ -203,6 +210,11 @@ def train(
         if cfg.log_every and update % cfg.log_every == 0:
             extra = f"  margin_vs_greedy={mean_margin:+,.0f}" if baseline_fn is not None else ""
             print(f"update {update:4d}  mean_score={mean_score:,.1f}  loss={loss.item():.4f}{extra}")
+
+    # Final snapshot of the fully-trained model, unless the loop's last update already hit it.
+    if checkpoint_cb is not None and cfg.checkpoint_every > 0 \
+       and cfg.updates > 0 and (cfg.updates - 1) % cfg.checkpoint_every != 0:
+        checkpoint_cb(cfg.updates - 1, model)
 
     if writer is not None:
         writer.flush()
