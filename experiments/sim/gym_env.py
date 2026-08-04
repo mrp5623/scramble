@@ -127,29 +127,45 @@ class ScrambleEnv(gym.Env):
 
     metadata = {"render_modes": []}
 
-    def __init__(self, roster=None, num_rounds: int = NUM_ROUNDS, seed=None, shaping_coef: float = 0.0):
+    def __init__(self, roster=None, num_rounds: int = NUM_ROUNDS, seed=None,
+                 shaping_coef: float = 0.0, shuffle: bool = False, shuffle_seed=None):
         super().__init__()
         self.roster = roster if roster is not None else load_roster()
         self.yard_scale = float(max(self.roster.qb_yards.values()))
         # >0 turns on opportunity-cost reward shaping (affects the LEARNING reward only;
         # info["raw_reward"] and sim.total_score stay the TRUE score for reporting).
         self.shaping_coef = float(shaping_coef)
+        # shuffle=True randomizes candidate slot order each decision (11-dim obs) so the
+        # agent can't ride the positional shortcut; the perm RNG is separate from the sim's
+        # draw RNG so CRN pairing / greedy baselines are unaffected (greedy ignores order).
+        self.shuffle = bool(shuffle)
+        self._perm_rng = np.random.default_rng(shuffle_seed) if self.shuffle else None
+        self._order = None
         self.sim = ScrambleSim(self.roster, num_rounds=num_rounds, seed=seed)
+        self._obs_dim = OBS_DIM_SHUFFLED if self.shuffle else OBS_DIM
         # obs features are ~[0,1]; flexibility can exceed 1 for very-multi-team QBs -> loose bound
-        self.observation_space = spaces.Box(low=0.0, high=2.0, shape=(OBS_DIM,), dtype=np.float32)
+        self.observation_space = spaces.Box(low=0.0, high=2.0, shape=(self._obs_dim,), dtype=np.float32)
         self.action_space = spaces.Discrete(N_ACTIONS)
 
+    def _new_order(self):
+        return candidate_order(self.sim, self._perm_rng) if self.shuffle else None
+
     def action_mask(self) -> np.ndarray:
-        return legal_action_mask(self.sim)
+        return legal_action_mask(self.sim, self._order)
 
     def reset(self, *, seed=None, options=None):
         super().reset(seed=seed)
         self.sim.reset(seed)
-        return build_observation(self.sim, self.yard_scale), {}
+        # Reseed the perm RNG from the same seed so a given seed -> a reproducible perm
+        # sequence (eval/probe need determinism; training passes random per-episode seeds).
+        if self.shuffle and seed is not None:
+            self._perm_rng = np.random.default_rng(seed)
+        self._order = self._new_order()
+        return build_observation(self.sim, self.yard_scale, self._order), {}
 
     def step(self, action):
         team = self.sim.current_team
-        pick = decode_action(self.sim, int(action))
+        pick = decode_action(self.sim, int(action), self._order)
         # Opportunity-cost shaping: charge the save-value of the QB spent, computed in the
         # PRE-step state (after the step, `pick` is used and p_k/relevances have changed).
         shaped = 0.0
@@ -158,9 +174,10 @@ class ScrambleEnv(gym.Env):
         raw_reward, done = self.sim.step(pick)
         reward = (raw_reward + shaped) / self.yard_scale
         info = {"raw_reward": raw_reward, "picked": pick, "team": team}
+        self._order = None if done else self._new_order()
         obs = (
-            np.zeros(OBS_DIM, dtype=np.float32)
+            np.zeros(self._obs_dim, dtype=np.float32)
             if done
-            else build_observation(self.sim, self.yard_scale)
+            else build_observation(self.sim, self.yard_scale, self._order)
         )
         return obs, reward, done, False, info

@@ -238,3 +238,35 @@ def test_legacy_obs_unchanged():
     sim = _sim_at()
     scale = float(max(sim.roster.qb_yards.values()))
     assert build_observation(sim, scale).shape == (OBS_DIM,)  # order=None -> 14
+
+
+# --- Shuffle mode: ScrambleEnv wiring (Task 2) ---
+
+def test_env_shuffle_obs_dim():
+    env = ScrambleEnv(shuffle=True)
+    assert env.observation_space.shape == (11,)
+    obs, _ = env.reset(seed=0)
+    assert obs.shape == (11,)
+
+
+def test_env_default_still_14():
+    env = ScrambleEnv()
+    assert env.observation_space.shape == (14,)
+
+
+def test_env_shuffle_reset_is_reproducible():
+    e1 = ScrambleEnv(shuffle=True); o1, _ = e1.reset(seed=3)
+    e2 = ScrambleEnv(shuffle=True); o2, _ = e2.reset(seed=3)
+    assert np.array_equal(o1, o2)
+
+
+def test_env_action_decodes_consistently_with_obs():
+    # Pick the max-yards slot from the obs; stepping it must score greedy's yards.
+    env = ScrambleEnv(shuffle=True)
+    obs, _ = env.reset(seed=11)
+    sim = env.sim
+    greedy_yards = sim.roster.qb_yards[greedy_pick(sim)]
+    yard_feats = [obs[3 * i] for i in range(3)]
+    best_slot = int(np.argmax(yard_feats))
+    _, _, _, _, info = env.step(best_slot)
+    assert info["raw_reward"] == greedy_yards
