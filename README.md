@@ -1,5 +1,7 @@
 # Scramble
 
+[![tests](https://github.com/mrp5623/scramble/actions/workflows/tests.yml/badge.svg)](https://github.com/mrp5623/scramble/actions/workflows/tests.yml)
+
 **The Game**: A desktop trivia game where you're shown a random NFL
 franchise and have to name a quarterback who took a snap for them at any point in their career, without replacement. Each correct QB adds their TOTAL career passing yards to your score across 25 rounds. A local leaderboard tracks the best runs.
 
