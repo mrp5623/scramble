@@ -1,6 +1,8 @@
 from experiments.sim.scramble_sim import Roster, ScrambleSim
 from experiments.baselines.optimal import offline_optimum
-from experiments.baselines.policies import greedy_pick, opportunity_cost_pick, opportunity_cost_v2_pick
+from experiments.baselines.policies import (
+    greedy_pick, opportunity_cost_pick, opportunity_cost_v2_pick, opportunity_cost_alpha_pick,
+)
 from experiments.tests.test_sim import tiny_roster
 
 
@@ -100,3 +102,21 @@ def test_v2_last_turn_is_greedy():
     sim.reset(0)
     sim.team_sequence = ["cin"]; sim.turn = 0; sim.used = set(); sim.total_score = 0
     assert opportunity_cost_v2_pick(sim) == greedy_pick(sim) == "flacco"
+
+
+def test_alpha_1_equals_v2():
+    # alpha=1 is exactly the risk-neutral v2 heuristic.
+    sim = ScrambleSim(oversave_roster(), num_rounds=6)
+    sim.reset(0)
+    sim.team_sequence = ["a"] * 6; sim.turn = 0; sim.used = set(); sim.total_score = 0
+    assert opportunity_cost_alpha_pick(sim, alpha=1.0) == opportunity_cost_v2_pick(sim)
+
+
+def test_higher_alpha_saves_more_aggressively():
+    # oversave_roster, team 'a', 6 turns: risk-neutral (alpha=1) plays the star x;
+    # cranking alpha (risk-seeking) makes it defer x for later teams -> picks y.
+    sim = ScrambleSim(oversave_roster(), num_rounds=6)
+    sim.reset(0)
+    sim.team_sequence = ["a"] * 6; sim.turn = 0; sim.used = set(); sim.total_score = 0
+    assert opportunity_cost_alpha_pick(sim, alpha=1.0) == "x"   # risk-neutral: take the star now
+    assert opportunity_cost_alpha_pick(sim, alpha=4.0) == "y"   # aggressive saving: hold x

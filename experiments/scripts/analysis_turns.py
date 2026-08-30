@@ -18,7 +18,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-from experiments.sim.scramble_sim import REPO_ROOT, ScrambleSim, load_roster
+from experiments.sim.scramble_sim import REPO_ROOT, NUM_ROUNDS, ScrambleSim, load_roster
 from experiments.baselines.policies import greedy_pick, opportunity_cost_pick
 from experiments.baselines.optimal import offline_optimum
 
@@ -70,7 +70,7 @@ def _plot(rows):
     ax.plot(turns, gap_pct, marker="o", label="optimum - greedy (ceiling)")
     ax.plot(turns, heur_pct, marker="s", label="heuristic - greedy")
     ax.axhline(0, color="gray", linewidth=0.8)
-    ax.axvline(20, color="tab:green", linestyle="--", linewidth=0.8, label="game length")
+    ax.axvline(NUM_ROUNDS, color="tab:green", linestyle="--", linewidth=0.8, label="game length")
     ax.set_xlabel("Turns per game")
     ax.set_ylabel("% of optimum")
     ax.set_title("Gap over greedy vs. number of turns")

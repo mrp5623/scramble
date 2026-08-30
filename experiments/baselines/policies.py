@@ -55,13 +55,19 @@ def opportunity_cost_pick(sim: ScrambleSim) -> Optional[str]:
     p_k = _appearance_prob(sim)
 
     def adjusted(q: str) -> float:
-        return sim.roster.qb_yards[q] - p_k * sum(_relevances(sim, q))
+        return sim.roster.qb_yards[q] - p_k * sum(_relevances(sim, q)) # <- SUMMING HERE BREAKS
 
     return max(avail, key=adjusted)
 
 
-def opportunity_cost_v2_pick(sim: ScrambleSim) -> Optional[str]:
-    """v2: opportunity cost = MAX marginal value over other franchises (q is saved once)."""
+def opportunity_cost_alpha_pick(sim: ScrambleSim, alpha: float = 1.0) -> Optional[str]:
+    """v2 opportunity cost with a tunable saving-aggressiveness `alpha`.
+
+    Picks argmax of `yards - alpha * p_k * max(relevances)`. alpha=1 is the risk-neutral v2
+    heuristic (maximizes expected value); alpha>1 over-weights the save value, deferring
+    multi-team QBs more aggressively -- a higher-variance, risk-seeking policy that trades
+    average score for a fatter upper tail (the knob F9 sweeps). alpha=0 is exactly greedy.
+    """
     avail = sim.available()
     if not avail:
         return None
@@ -69,6 +75,11 @@ def opportunity_cost_v2_pick(sim: ScrambleSim) -> Optional[str]:
 
     def adjusted(q: str) -> float:
         rels = _relevances(sim, q)
-        return sim.roster.qb_yards[q] - p_k * (max(rels) if rels else 0.0)
+        return sim.roster.qb_yards[q] - alpha * p_k * (max(rels) if rels else 0.0)
 
     return max(avail, key=adjusted)
+
+
+def opportunity_cost_v2_pick(sim: ScrambleSim) -> Optional[str]:
+    """v2: opportunity cost = MAX marginal value over other franchises (q is saved once)."""
+    return opportunity_cost_alpha_pick(sim, alpha=1.0)
