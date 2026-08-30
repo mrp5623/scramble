@@ -27,7 +27,16 @@ As I said, after learning rosters and yard counts from a few dozen rounds of pla
 
 When I learned more about the capabilities of machine learning during my first year at UF, my mind wandered back to this project. Though our saving strategy had won the race to 1.3 million, the loyalists to the 'best option' strategy within our group had a good point: We knew the highest POSSIBLE score was greater than 1.3 million, so their strategy would pass the bar in at least one of the $32^{25}$ possible sequences of teams. Saving introduced a new variable that might even lead to us missing out on a winning run by being too fancy. I wanted to see if I could prove that the saving strategy was optimal, and if an RL agent trained on thousands of rounds of the game would pick up on greedy, saving, or possibly something none of us had even considered.
 
-My findings are detailed in the [report](docs/experiments/REPORT.md) in this repo.
+### Key Results
+
+- **Greedy is nearly optimal** for raw score — 98.1% of a clairvoyant offline optimum.
+- **But for the goal actually played** (clearing 1.3M yards), a mild "saving" strategy
+  is provably better: +25% more likely to hit the threshold than greedy.
+- **A from-scratch RL agent rediscovers this unaided.** With no teacher and no reward
+  shaping, a REINFORCE agent trained on ~192k games learns to beat greedy by a
+  statistically significant margin (+2,959 yards/game, t = 14.1, n = 3,000 paired games).
+
+The full findings are detailed in the [report](docs/experiments/REPORT.md) in this repo.
 
 ## How it works
 
