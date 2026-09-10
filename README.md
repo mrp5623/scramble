@@ -94,6 +94,28 @@ with no toolchain installed.
 - Way to watch the different policies play the game in the actual application
 - Way to let players see how each policy would've played their last game differently from them
 
+## Web app
+
+The browser version lives in `web/` and has no build step or dependencies.
+
+Run the headless test suite from the repo root (requires Node 22+):
+
+```bash
+node --test "web/tests/**/*.test.js"
+```
+
+Verify the JavaScript ports of the three policies against the Python study. Unlike
+the rest of `web/`, the two export scripts below require `torch`. Only
+`export_parity_fixtures.py` needs the `PYTHONPATH=.` prefix, because it imports the
+`experiments` package for its baseline policies; `export_sal.py` doesn't reach into
+`experiments`, so it runs without it:
+
+```bash
+python experiments/scripts/export_sal.py              # writes web/weights/sal.json
+PYTHONPATH=. python experiments/scripts/export_parity_fixtures.py
+node web/tools/parity.mjs
+```
+
 ## License
 
 MIT — see [LICENSE](LICENSE).
