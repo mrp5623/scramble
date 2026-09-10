@@ -43,6 +43,13 @@ test('plays a full game without ever reusing a QB', () => {
   assert.equal(new Set(picked).size, picked.length);
 });
 
+test('returns null on a finished game rather than throwing', () => {
+  const g = createGame({ roster: ROSTER, teamSequence: ['den'] });
+  g.step(null);
+  assert.equal(g.done, true);
+  assert.equal(greedyPick(g), null);
+});
+
 test('the registry exposes Bob with the shared pick signature', () => {
   assert.equal(POLICIES.bob.name, 'Bob');
   assert.equal(POLICIES.bob.fullName, 'Best Option Bot');

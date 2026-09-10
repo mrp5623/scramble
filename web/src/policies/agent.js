@@ -33,12 +33,40 @@ function linear(x, W, b) {
   return out;
 }
 
+/** True iff `value` is an array shaped exactly like `dims` (row lengths included). */
+function hasShape(value, dims) {
+  if (!Array.isArray(value) || value.length !== dims[0]) return false;
+  if (dims.length === 1) return true;
+  return value.every((row) => hasShape(row, dims.slice(1)));
+}
+
 export function createAgent(weights) {
   if (weights.obs_dim !== 11) {
     throw new Error(`Sal expects obs_dim 11, got ${weights.obs_dim}`);
   }
   if (weights.n_actions !== N_ACTIONS) {
     throw new Error(`Sal expects n_actions ${N_ACTIONS}, got ${weights.n_actions}`);
+  }
+  if (!weights.params || typeof weights.params !== 'object') {
+    throw new Error('Sal weights are missing params');
+  }
+
+  const { obs_dim: obsDim, hidden, n_actions: nActions } = weights;
+  const expectedShapes = {
+    'trunk.0.weight': [hidden, obsDim],
+    'trunk.0.bias': [hidden],
+    'trunk.2.weight': [hidden, hidden],
+    'trunk.2.bias': [hidden],
+    'policy_head.weight': [nActions, hidden],
+    'policy_head.bias': [nActions],
+  };
+  for (const [key, dims] of Object.entries(expectedShapes)) {
+    if (!(key in weights.params)) {
+      throw new Error(`Sal weights are missing tensor "${key}"`);
+    }
+    if (!hasShape(weights.params[key], dims)) {
+      throw new Error(`Sal weights tensor "${key}" has the wrong shape, expected [${dims.join('][')}]`);
+    }
   }
 
   const p = weights.params;

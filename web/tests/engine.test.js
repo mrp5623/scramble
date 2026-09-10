@@ -79,3 +79,16 @@ test('turnsRemaining counts down and the game ends after the last round', () => 
   assert.equal(g.turnsRemaining(), 0);
   assert.equal(g.done, true);
 });
+
+test('a completed game reports currentTeam null and available [] without throwing', () => {
+  const g = createGame({ roster: TINY, teamSequence: ['aaa'] });
+  g.step(null);
+  assert.equal(g.done, true);
+  assert.equal(g.currentTeam, null);
+  assert.deepEqual(g.available(), []);
+});
+
+test('seed defaults to null when an explicit sequence is injected', () => {
+  const g = createGame({ roster: TINY, teamSequence: ['aaa', 'bbb'] });
+  assert.equal(g.seed, null);
+});

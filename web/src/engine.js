@@ -8,10 +8,10 @@ import { createRng } from './rng.js';
 
 export const NUM_ROUNDS = 25;
 
-export function createGame({ roster, rounds = NUM_ROUNDS, seed = 0, teamSequence = null }) {
+export function createGame({ roster, rounds = NUM_ROUNDS, seed = null, teamSequence = null }) {
   let sequence = teamSequence;
   if (!sequence) {
-    const rng = createRng(seed);
+    const rng = createRng(seed ?? 0);
     sequence = Array.from({ length: rounds }, () => rng.choice(roster.teamCodes));
   }
 
@@ -29,7 +29,7 @@ export function createGame({ roster, rounds = NUM_ROUNDS, seed = 0, teamSequence
     },
 
     get currentTeam() {
-      return this.teamSequence[this.turn];
+      return this.done ? null : this.teamSequence[this.turn];
     },
 
     turnsRemaining() {
@@ -41,7 +41,7 @@ export function createGame({ roster, rounds = NUM_ROUNDS, seed = 0, teamSequence
     },
 
     available() {
-      return this.availableFor(this.currentTeam);
+      return this.currentTeam === null ? [] : this.availableFor(this.currentTeam);
     },
 
     step(pick) {

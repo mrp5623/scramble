@@ -15,6 +15,7 @@ export const POLICIES = {
     name: 'Bob',
     fullName: 'Best Option Bot',
     blurb: 'Always takes the highest-yardage quarterback available.',
+    ready: true,
     pick: (game) => greedyPick(game),
   },
   carl: {
@@ -22,6 +23,7 @@ export const POLICIES = {
     name: 'Carl',
     fullName: 'Monte Carlo rollout',
     blurb: 'Simulates forty possible futures for each candidate before deciding.',
+    ready: true,
     pick: (game, rng) => rolloutPick(game, rng),
   },
   sal: {
@@ -29,6 +31,7 @@ export const POLICIES = {
     name: 'Sal',
     fullName: 'Saving Artificial Learner',
     blurb: 'A neural network trained on ~192,000 games. Nobody taught it to save.',
+    ready: false,
     pick: () => {
       throw new Error('Sal is not loaded yet -- call registerSal(agent) first');
     },
@@ -44,4 +47,5 @@ export function getPolicy(id) {
 /** Sal cannot play until his weights are fetched; this wires them in once they are. */
 export function registerSal(agent) {
   POLICIES.sal.pick = (game) => agentPick(game, agent);
+  POLICIES.sal.ready = true;
 }

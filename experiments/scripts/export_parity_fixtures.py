@@ -88,12 +88,11 @@ def main() -> None:
         rollout_totals.append(sim.total_score)
 
     payload = {
-        "n_games": N_GAMES,
+        "nGames": N_GAMES,
         "sequences": sequences,
         "greedyTotals": greedy_totals,
         "salTotals": sal_totals,
         "rolloutMean": sum(rollout_totals) / N_GAMES,
-        "rolloutN": N_GAMES,
     }
 
     OUT.parent.mkdir(parents=True, exist_ok=True)

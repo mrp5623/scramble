@@ -5,6 +5,7 @@ import { buildRoster } from '../src/roster.js';
 import { createGame } from '../src/engine.js';
 import { createAgent, agentPick } from '../src/policies/agent.js';
 import { N_ACTIONS } from '../src/policies/features.js';
+import { POLICIES, registerSal } from '../src/policies/index.js';
 
 const DATA = JSON.parse(
   readFileSync(new URL('../../data/nfl_qbs.json', import.meta.url), 'utf8'),
@@ -30,6 +31,21 @@ test('createAgent rejects a blob with the wrong observation size', () => {
     () => createAgent({ ...WEIGHTS, obs_dim: 14 }),
     /obs_dim/,
   );
+});
+
+test('createAgent rejects a blob with a truncated tensor, at construction time', () => {
+  const truncated = {
+    ...WEIGHTS,
+    params: {
+      ...WEIGHTS.params,
+      'trunk.0.weight': WEIGHTS.params['trunk.0.weight'].slice(0, 10),
+    },
+  };
+  assert.throws(() => createAgent(truncated), /trunk\.0\.weight/);
+});
+
+test('createAgent rejects a blob missing params entirely', () => {
+  assert.throws(() => createAgent({ ...WEIGHTS, params: undefined }), /params/);
 });
 
 test('forward returns one finite logit per action', () => {
@@ -59,6 +75,17 @@ test('returns null when nothing is available', () => {
   const g = createGame({ roster: ROSTER, teamSequence: ['den'] });
   for (const q of ROSTER.teamQbs.den) g.used.add(q);
   assert.equal(agentPick(g, AGENT), null);
+});
+
+test('Sal is not ready until registerSal runs, then pick works', () => {
+  assert.equal(POLICIES.sal.ready, false);
+  assert.throws(() => POLICIES.sal.pick(createGame({ roster: ROSTER, teamSequence: ['den'] })));
+
+  registerSal(AGENT);
+
+  assert.equal(POLICIES.sal.ready, true);
+  const g = createGame({ roster: ROSTER, teamSequence: ['den'] });
+  assert.equal(POLICIES.sal.pick(g), agentPick(g, AGENT));
 });
 
 test('plays a full game without reusing a QB', () => {

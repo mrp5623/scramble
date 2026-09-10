@@ -92,6 +92,16 @@ test('a real QB who never played for this team reports wrong-team', () => {
   });
 });
 
+test('a last-name-only miss reports wrong-team for the highest-yardage namesake', () => {
+  // Several Palmers played in the league (Carson, Jordan, Paul, Jesse), none for
+  // Denver. The fallback must pick Carson (46,247 yards), not whichever indexes first.
+  const g = game(['den']);
+  assert.deepEqual(resolveAnswer(g, 'palmer'), {
+    status: 'wrong-team',
+    qb: 'carson palmer',
+  });
+});
+
 test('nonsense reports unknown', () => {
   const g = game(['den']);
   assert.deepEqual(resolveAnswer(g, 'zzzqqqxyz'), { status: 'unknown' });

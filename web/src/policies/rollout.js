@@ -4,6 +4,7 @@
  *
  * Port of rollout_pick in experiments/baselines/rollout.py.
  */
+import { N_CANDIDATES } from './features.js';
 
 /** Greedy total over a fixed future team sequence, starting from a copy of `used`. */
 function greedyScoreOnSequence(roster, used, sequence) {
@@ -22,7 +23,7 @@ function greedyScoreOnSequence(roster, used, sequence) {
   return score;
 }
 
-export function rolloutPick(game, rng, { nRollouts = 40, topK = 3 } = {}) {
+export function rolloutPick(game, rng, { nRollouts = 40, topK = N_CANDIDATES } = {}) {
   const avail = game.available();
   if (avail.length === 0) return null;
 

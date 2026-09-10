@@ -91,12 +91,16 @@ export function resolveAnswer(game, input) {
   }
   if (pool.length) return finish(game, preferUnused(game, pool));
 
-  // 4. A real QB, just not for this franchise.
+  // 4. A real QB, just not for this franchise. Several namesakes can match a bare
+  //    last name, so report the highest-yardage one, consistent with tier 2.
+  let bestName = null;
   for (const name of Object.keys(roster.qbYards)) {
-    if (normalize(name) === query || lastNameOf(name) === query) {
-      return { status: 'wrong-team', qb: name };
+    if (normalize(name) !== query && lastNameOf(name) !== query) continue;
+    if (bestName === null || roster.qbYards[name] > roster.qbYards[bestName]) {
+      bestName = name;
     }
   }
+  if (bestName !== null) return { status: 'wrong-team', qb: bestName };
 
   return { status: 'unknown' };
 }

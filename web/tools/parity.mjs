@@ -50,7 +50,7 @@ function exactCheck(label, actual, expected) {
   return ok;
 }
 
-console.log(`Comparing ${fx.n_games} games against Python\n`);
+console.log(`Comparing ${fx.nGames} games against Python\n`);
 
 const bobOk = exactCheck('Bob   ', playAll(fx.sequences, (g) => greedyPick(g)), fx.greedyTotals);
 const salOk = exactCheck('Sal   ', playAll(fx.sequences, (g) => agentPick(g, agent)), fx.salTotals);
@@ -60,16 +60,20 @@ const carlMean = mean(carlScores);
 const sd = Math.sqrt(
   carlScores.reduce((a, x) => a + (x - carlMean) ** 2, 0) / (carlScores.length - 1),
 );
-const stderr = sd / Math.sqrt(carlScores.length);
+const jsStderr = sd / Math.sqrt(carlScores.length);
+// fx.rolloutMean is itself a sample mean over an independent n=500 Python run, so the
+// comparison is between two sampled means. The standard error of their difference is
+// sqrt(2) times the JS-side standard error (assuming comparable variance on both sides).
+const diffStderr = jsStderr * Math.sqrt(2);
 const diff = carlMean - fx.rolloutMean;
-const sigmas = Math.abs(diff) / stderr;
+const sigmas = Math.abs(diff) / diffStderr;
 const carlOk = sigmas < 3;
 
 console.log(
   `${carlOk ? 'PASS' : 'FAIL'}  Carl  : js mean ${carlMean.toLocaleString(undefined, { maximumFractionDigits: 0 })} vs py ${fx.rolloutMean.toLocaleString(undefined, { maximumFractionDigits: 0 })}`,
 );
 console.log(
-  `        difference ${diff > 0 ? '+' : ''}${diff.toFixed(0)}, standard error ${stderr.toFixed(0)} (${sigmas.toFixed(2)} sigma)`,
+  `        difference ${diff > 0 ? '+' : ''}${diff.toFixed(0)}, standard error of the difference ${diffStderr.toFixed(0)} (${sigmas.toFixed(2)} sigma)`,
 );
 
 console.log(`\nSal beats Bob by ${(mean(fx.salTotals) - mean(fx.greedyTotals)).toFixed(0)} yards per game (Python figures).`);
