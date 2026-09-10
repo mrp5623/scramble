@@ -7,6 +7,7 @@
  */
 import { greedyPick } from './greedy.js';
 import { rolloutPick } from './rollout.js';
+import { agentPick } from './agent.js';
 
 export const POLICIES = {
   bob: {
@@ -23,10 +24,24 @@ export const POLICIES = {
     blurb: 'Simulates forty possible futures for each candidate before deciding.',
     pick: (game, rng) => rolloutPick(game, rng),
   },
+  sal: {
+    id: 'sal',
+    name: 'Sal',
+    fullName: 'Saving Artificial Learner',
+    blurb: 'A neural network trained on ~192,000 games. Nobody taught it to save.',
+    pick: () => {
+      throw new Error('Sal is not loaded yet -- call registerSal(agent) first');
+    },
+  },
 };
 
 export function getPolicy(id) {
   const policy = POLICIES[id];
   if (!policy) throw new Error(`Unknown policy: ${id}`);
   return policy;
+}
+
+/** Sal cannot play until his weights are fetched; this wires them in once they are. */
+export function registerSal(agent) {
+  POLICIES.sal.pick = (game) => agentPick(game, agent);
 }
