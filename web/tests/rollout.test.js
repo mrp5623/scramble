@@ -63,3 +63,29 @@ test('the registry exposes Carl', () => {
   const g = createGame({ roster: ROSTER, teamSequence: ['den'] });
   assert.equal(POLICIES.carl.pick(g, createRng(1)), 'peyton manning');
 });
+
+test('scores every candidate on the same sampled futures (common random numbers)', () => {
+  // With CRN the futures are drawn once: nRollouts sequences of remainingAfter
+  // team draws, independent of how many candidates are being compared. A version
+  // that resampled per candidate would multiply this by the candidate count,
+  // which is the regression that silently drops Carl below greedy.
+  const g = createGame({ roster: ROSTER, teamSequence: ['den', 'crd', 'gnb', 'nyj'] });
+  assert.equal(g.available().length >= 3, true, 'need at least 3 candidates for this test to be meaningful');
+
+  const base = createRng(5);
+  let choiceCalls = 0;
+  const counting = {
+    next: () => base.next(),
+    int: (n) => base.int(n),
+    choice: (array) => {
+      choiceCalls += 1;
+      return base.choice(array);
+    },
+  };
+
+  const nRollouts = 8;
+  const remainingAfter = g.turnsRemaining() - 1;
+  rolloutPick(g, counting, { nRollouts, topK: 3 });
+
+  assert.equal(choiceCalls, nRollouts * remainingAfter);
+});
