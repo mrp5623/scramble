@@ -94,6 +94,24 @@ with no toolchain installed.
 - Way to watch the different policies play the game in the actual application
 - Way to let players see how each policy would've played their last game differently from them
 
+## Web app
+
+The browser version lives in `web/` and has no build step or dependencies.
+
+Run the headless test suite from the repo root (requires Node 22+):
+
+```bash
+node --test
+```
+
+Verify the JavaScript ports of the three policies against the Python study:
+
+```bash
+python experiments/scripts/export_sal.py              # writes web/weights/sal.json
+PYTHONPATH=. python experiments/scripts/export_parity_fixtures.py
+node web/tools/parity.mjs
+```
+
 ## License
 
 MIT — see [LICENSE](LICENSE).
