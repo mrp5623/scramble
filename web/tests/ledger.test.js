@@ -87,3 +87,19 @@ test('the opponent name is escaped', () => {
   assert.ok(html.includes('&lt;b&gt;Bob&lt;/b&gt;'));
   assert.ok(!html.includes('<b>Bob</b>'));
 });
+
+test('the highlight lands on the round that matches, not simply the first row', () => {
+  // VS_ROWS is newest-first, so round 1 is the LAST row -- an implementation that
+  // tagged whichever row came first would pass a count-only assertion.
+  const html = renderLedger({ rows: VS_ROWS, opponentName: 'Bob', newestRound: 1 });
+  const classes = [...html.matchAll(/<tr role="row" class="ledger-row([^"]*)">/g)].map((m) => m[1].trim());
+  assert.deepEqual(classes, ['', '', 'is-new']);
+});
+
+test('columns appear in the documented order within a row', () => {
+  const html = renderLedger({ rows: VS_ROWS, opponentName: 'Bob' });
+  const firstRow = html.match(/<tr role="row" class="ledger-row[^"]*">([\s\S]*?)<\/tr>/)[1];
+  const order = ['c-round', 'c-team', 'c-you', 'c-bot', 'c-delta'].map((c) => firstRow.indexOf(c));
+  assert.ok(order.every((index) => index > -1), 'every column present');
+  assert.deepEqual(order, [...order].sort((a, b) => a - b));
+});
