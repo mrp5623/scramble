@@ -147,3 +147,22 @@ test('replaying a seed replays the opponent, including Carl\'s sampled futures',
   };
   assert.deepEqual(botPicksFor(), botPicksFor());
 });
+
+test('the ledger handed out cannot corrupt the session history', () => {
+  const s = createSession({ roster: ROSTER, teamSequence: ['den', 'crd'] });
+  s.skip();
+  const taken = s.ledger;
+  taken.push({ round: 99 });
+  taken.length = 0;
+  assert.equal(s.ledger.length, 1);
+  assert.equal(s.ledger[0].round, 1);
+});
+
+test('a returned row cannot be edited after the fact', () => {
+  const s = createSession({ roster: ROSTER, teamSequence: ['den'] });
+  const { row } = s.skip();
+  assert.throws(() => {
+    row.youYards = 999999;
+  }, TypeError);
+  assert.equal(s.ledger[0].youYards, 0);
+});

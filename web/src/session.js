@@ -36,7 +36,7 @@ export function createSession({ roster, opponent = null, seed = null, teamSequen
       botYards = bot.step(botPick).reward;
     }
 
-    const row = {
+    const row = Object.freeze({
       round,
       team,
       youPick: pick,
@@ -44,7 +44,7 @@ export function createSession({ roster, opponent = null, seed = null, teamSequen
       botPick,
       botYards,
       delta: bot ? youYards - botYards : null,
-    };
+    });
     ledger.unshift(row);
     return row;
   }
@@ -53,8 +53,10 @@ export function createSession({ roster, opponent = null, seed = null, teamSequen
     seed,
     rounds: you.rounds,
     opponent,
-    /** Completed rounds, newest first. Treat as read-only. */
-    ledger,
+    /** Completed rounds, newest first. A copy: the session's own history cannot be edited from outside. */
+    get ledger() {
+      return ledger.slice();
+    },
 
     get done() {
       return you.done;
