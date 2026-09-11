@@ -19,10 +19,10 @@ import {
 const DATA = JSON.parse(
   readFileSync(new URL('../../data/nfl_qbs.json', import.meta.url), 'utf8'),
 );
-const EM_DASH = '—';
-const MINUS = '−';
-const DOT = '·';
-const ARROW = '→';
+const EM_DASH = '\u2014';
+const MINUS = '\u2212';
+const DOT = '\u00b7';
+const ARROW = '\u2192';
 
 test('formatYards groups thousands', () => {
   assert.equal(formatYards(71940), '71,940');
@@ -106,7 +106,7 @@ test('pickConfirmation drops the echo when the full name was typed', () => {
 test('fixed and templated status lines', () => {
   assert.equal(SKIPPED_MESSAGE, 'Skipped.');
   assert.equal(autoSkipMessage('Broncos'), 'No Broncos quarterbacks left.');
-  assert.equal(answeringMessage('Bob'), 'Bob is answering…');
+  assert.equal(answeringMessage('Bob'), 'Bob is answering\u2026');
 });
 
 test('resultLine describes the head-to-head outcome', () => {

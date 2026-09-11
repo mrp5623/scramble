@@ -7,11 +7,11 @@
 import { normalize } from './match.js';
 
 const GROUPED = new Intl.NumberFormat('en-US');
-const EM_DASH = '—';
-const MINUS = '−';
-const MIDDLE_DOT = '·';
-const ARROW = '→';
-const ELLIPSIS = '…';
+const EM_DASH = '\u2014';
+const MINUS = '\u2212';
+const MIDDLE_DOT = '\u00b7';
+const ARROW = '\u2192';
+const ELLIPSIS = '\u2026';
 const ROMAN_SUFFIXES = new Set(['ii', 'iii', 'iv']);
 const NAME_LIMIT = 20;
 
