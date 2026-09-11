@@ -1,0 +1,119 @@
+/**
+ * Whole-screen markup: mode select, the game shell, game over, and the leaderboard.
+ *
+ * Mode select renders from the policy registry, so a new opponent appears here with
+ * no change to this file. The game shell is static: main.js refills its #scoreboard
+ * and #ledger regions each round but never re-renders the input, so a rejected guess
+ * keeps what the player typed.
+ */
+import { escapeHtml } from './html.js';
+import { formatYards } from '../format.js';
+
+const STATUS_TEXT = {
+  loading: 'Loading\u2026',
+  failed: 'Unavailable right now.',
+};
+
+export function modeOptions(policies, { failedIds = [] } = {}) {
+  const options = [
+    { id: 'classic', label: 'Classic', fullName: null, blurb: 'Just you and the rosters.', status: 'ready' },
+  ];
+  for (const policy of Object.values(policies)) {
+    let status = 'ready';
+    if (!policy.ready) status = failedIds.includes(policy.id) ? 'failed' : 'loading';
+    options.push({
+      id: policy.id,
+      label: `vs ${policy.name}`,
+      fullName: policy.fullName,
+      blurb: policy.blurb,
+      status,
+    });
+  }
+  return options;
+}
+
+function modeButton(option) {
+  const ready = option.status === 'ready';
+  const statusId = `mode-${option.id}-status`;
+  const fullName = option.fullName
+    ? `<span class="mode-full">${escapeHtml(option.fullName)}</span>`
+    : '';
+  const status = ready
+    ? ''
+    : `<span id="${escapeHtml(statusId)}" class="mode-status">${escapeHtml(STATUS_TEXT[option.status])}</span>`;
+  const disabled = ready ? '' : ` disabled aria-describedby="${escapeHtml(statusId)}"`;
+
+  return `
+    <li class="mode-item">
+      <button type="button" class="mode" data-mode="${escapeHtml(option.id)}"${disabled}>
+        <span class="mode-name">${escapeHtml(option.label)}</span>${fullName}
+        <span class="mode-blurb">${escapeHtml(option.blurb)}</span>${status}
+      </button>
+    </li>`;
+}
+
+export function renderModeSelect(options) {
+  return `
+    <section class="card screen-select" aria-labelledby="wordmark">
+      <header class="masthead">
+        <h1 id="wordmark" class="wordmark">Scramble</h1>
+        <p class="lede">Name a quarterback for each team. Twenty-five rounds. No repeats.</p>
+      </header>
+      <ol class="modes">${options.map(modeButton).join('')}</ol>
+    </section>`;
+}
+
+export function renderGameShell() {
+  return `
+    <section class="card screen-game">
+      <div id="scoreboard" class="scoreboard"></div>
+      <form id="answer-form" class="answer" autocomplete="off" novalidate>
+        <label class="visually-hidden" for="answer">Quarterback name</label>
+        <input id="answer" class="answer-input" type="text" maxlength="40" autocomplete="off"
+          autocapitalize="words" spellcheck="false" enterkeyhint="go" placeholder="Name a quarterback">
+        <button type="submit" class="btn btn-primary">Submit</button>
+        <button type="button" id="skip" class="btn btn-secondary">Skip <kbd class="hint">Shift+Enter</kbd></button>
+      </form>
+      <p id="message" class="message" role="status" aria-live="polite"></p>
+      <div id="ledger" class="ledger-wrap"></div>
+    </section>`;
+}
+
+/** `scoresHtml` and `ledgerHtml` are already-escaped markup from renderScores/renderLedger. */
+export function renderGameOver({ modeLabel, resultText, scoresHtml, ledgerHtml, seed }) {
+  return `
+    <section class="card screen-over">
+      <div class="topbar">
+        <span class="topbar-round">Final</span>
+        <span class="topbar-mode">${escapeHtml(modeLabel)}</span>
+      </div>
+      <h1 class="final-result">${escapeHtml(resultText ?? 'Game over.')}</h1>
+      ${scoresHtml}
+      <form id="save-form" class="save" novalidate>
+        <label class="save-label" for="player-name">Name for the scoreboard</label>
+        <div class="save-row">
+          <input id="player-name" class="answer-input" type="text" maxlength="20"
+            autocomplete="nickname" placeholder="Anonymous">
+          <button type="submit" class="btn btn-primary">Save score</button>
+        </div>
+      </form>
+      <div id="leaderboard" class="leaderboard"></div>
+      <div class="actions">
+        <button type="button" id="play-again" class="btn btn-primary">Play again</button>
+        <button type="button" id="change-mode" class="btn btn-secondary">Change mode</button>
+      </div>
+      ${ledgerHtml}
+      <p class="seed num">Seed ${escapeHtml(seed ?? '')}</p>
+    </section>`;
+}
+
+export function renderLeaderboard(scores, { highlightDate = null } = {}) {
+  const title = '<h2 class="board-title">Top scores</h2>';
+  if (scores.length === 0) return `${title}<p class="board-empty">No scores saved yet.</p>`;
+
+  const rows = scores.map((s, i) => {
+    const you = highlightDate !== null && s.date === highlightDate ? ' is-you' : '';
+    return `<li class="board-row${you}"><span class="board-rank num" aria-hidden="true">${i + 1}</span><span class="board-name">${escapeHtml(s.name)}</span><span class="board-score num">${escapeHtml(formatYards(s.score))}</span></li>`;
+  });
+  return `${title}<ol class="board">${rows.join('')}</ol>`;
+}
