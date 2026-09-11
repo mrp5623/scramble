@@ -116,3 +116,18 @@ test('the leaderboard ranks entries and highlights the one just saved', () => {
   assert.equal(count(html, 'is-you'), 1);
   assert.ok(html.indexOf('Mike') < html.indexOf('&lt;Ann&gt;'));
 });
+
+test('game over escapes its own text fields', () => {
+  const html = renderGameOver({
+    modeLabel: 'vs <b>Bob</b>',
+    resultText: 'You beat <i>Bob</i> by 1.',
+    scoresHtml: '',
+    ledgerHtml: '',
+    seed: '<script>',
+  });
+  assert.ok(html.includes('vs &lt;b&gt;Bob&lt;/b&gt;'));
+  assert.ok(html.includes('You beat &lt;i&gt;Bob&lt;/i&gt; by 1.'));
+  assert.ok(html.includes('Seed &lt;script&gt;'));
+  assert.ok(!html.includes('<b>Bob</b>'));
+  assert.ok(!html.includes('<script>'));
+});
