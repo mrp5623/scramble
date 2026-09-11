@@ -77,6 +77,18 @@ test('renderScores stands alone for the game-over screen', () => {
   assert.ok(html.includes('+100'));
 });
 
+test('team colours are escaped inside the style attribute', () => {
+  // A quote in a colour value could otherwise close the attribute and open another.
+  const html = renderScoreboard({
+    ...base,
+    colors: { primary: '#FB4F14" onload="alert(1)', accent: '<script>' },
+  });
+  assert.ok(!html.includes('onload="alert(1)'), 'attribute breakout');
+  assert.ok(html.includes('&quot; onload=&quot;alert(1)'));
+  assert.ok(html.includes('&lt;script&gt;'));
+  assert.ok(!html.includes('<script>'));
+});
+
 test('interpolated text is escaped', () => {
   const html = renderScoreboard({ ...base, teamName: '<script>', modeLabel: 'a & b' });
   assert.ok(html.includes('&lt;script&gt;'));
