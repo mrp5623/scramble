@@ -66,3 +66,27 @@ test('local assets use relative paths so the site works under /scramble/', () =>
   assert.ok(local.length >= 2);
   for (const url of local) assert.ok(!url.startsWith('/'), url);
 });
+
+test('the team name clamp has a ceiling that does not shout', () => {
+  const rule = CSS.match(/\.team-name\s*\{[^}]*\}/);
+  assert.ok(rule, '.team-name rule present');
+  const clamp = rule[0].match(/font-size:\s*clamp\(([^)]+)\)/);
+  assert.ok(clamp, 'the team name sizes with clamp()');
+  const ceiling = clamp[1].split(',')[2].trim();
+  assert.match(ceiling, /rem$/, `ceiling ${ceiling} should be expressed in rem`);
+  assert.ok(Number.parseFloat(ceiling) <= 6, `display ceiling ${ceiling} must be at most 6rem`);
+});
+
+test('every animated selector has a reduced-motion alternative', () => {
+  const at = CSS.indexOf('@media (prefers-reduced-motion: reduce)');
+  assert.ok(at > -1, 'reduced-motion block present');
+  const before = CSS.slice(0, at);
+  const reduced = CSS.slice(at);
+
+  const animated = [...before.matchAll(/([.#][\w.-]+)\s*\{[^}]*animation:/g)].map((m) => m[1]);
+  assert.ok(animated.length > 0, 'the stylesheet animates something');
+  for (const selector of animated) {
+    assert.ok(reduced.includes(selector), `${selector} is animated but has no reduced-motion alternative`);
+  }
+  assert.match(reduced, /animation:\s*none/);
+});
