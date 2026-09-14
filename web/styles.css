@@ -15,6 +15,7 @@
   --win: #1f6b3a; /* 6.52:1 on stock */
   --loss: #a3241b; /* 7.43:1 on stock */
   --flash: #ececec; /* the newest ledger row and your leaderboard entry */
+  --field: #0b5d2e; /* home screen turf ground; white text on it is 8.02:1 */
 
   --font: 'Archivo', 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
   --display-stretch: 62%;
@@ -106,7 +107,15 @@ body {
   align-items: baseline;
   gap: var(--space-3);
   padding: var(--space-2) var(--space-4);
-  background: var(--ink);
+  /* Scanlines ride in the background layer, so they sit behind the text without
+     any stacking-context work. Darkening alternate rows only raises the contrast
+     of white text, never lowers it. */
+  background-color: var(--ink);
+  background-image: repeating-linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.06) 0 1px,
+    transparent 1px 3px
+  );
   color: var(--stock);
   font-size: 0.8125rem;
   font-weight: 700;
@@ -387,17 +396,32 @@ body {
 .masthead {
   padding: var(--space-6) var(--space-4) var(--space-5);
   color: var(--stock);
-  background: var(--ink);
+  /* Scanlines ride in the background layer, so they sit behind the text without
+     any stacking-context work. Darkening alternate rows only raises the contrast
+     of white text, never lowers it. */
+  background-color: var(--field);
+  background-image: repeating-linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.2) 0 2px,
+    transparent 2px 4px
+  );
   border-bottom: var(--rule-heavy) solid var(--ink);
 }
 
 .wordmark {
   margin: 0;
+  color: var(--stock);
   font-stretch: var(--display-stretch);
   font-weight: 900;
   font-size: clamp(3rem, 1.5rem + 9vw, 5.5rem);
   line-height: 0.85;
-  letter-spacing: -0.01em;
+  /* Arcade extrude: two hard offsets, no blur. Same layered text-shadow
+     technique the team name uses as an ink trap. */
+  text-shadow:
+    0.055em 0.055em 0 var(--ink),
+    0.11em 0.11em 0 var(--ink);
+  /* Pixel-era logos are not tight. */
+  letter-spacing: 0.01em;
   text-transform: uppercase;
 }
 
@@ -405,7 +429,7 @@ body {
   max-width: 40ch;
   margin: var(--space-3) 0 0;
   font-size: 1.0625rem;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 /* A ruled lineup rather than a grid of identical cards. */
@@ -419,11 +443,14 @@ body {
   border-top: var(--rule-mid) solid var(--ink);
 }
 
+/* Menu rows read like a select screen: a blocky cursor and an inverted highlight. */
 .mode {
+  position: relative;
   display: grid;
   gap: 0.125rem;
   width: 100%;
   padding: var(--space-4);
+  padding-left: calc(var(--space-4) + 1.7em);
   font: inherit;
   text-align: left;
   color: var(--ink);
@@ -431,10 +458,37 @@ body {
   border: 0;
   border-radius: 0;
   cursor: pointer;
+  transition: background-color 150ms var(--ease-out-quart), color 150ms var(--ease-out-quart);
 }
 
-.mode:hover:not(:disabled) {
-  background: var(--flash);
+.mode::before {
+  content: '';
+  position: absolute;
+  left: var(--space-4);
+  top: 1.1em;
+  width: 0.62em;
+  height: 0.62em;
+  background: var(--stock);
+  /* A blocky triangular cursor drawn in CSS -- no new asset, no icon font. */
+  clip-path: polygon(0 0, 100% 50%, 0 100%);
+  opacity: 0;
+}
+
+.mode:hover:not(:disabled),
+.mode:focus-visible:not(:disabled) {
+  background: var(--ink);
+  color: var(--stock);
+}
+
+.mode:hover:not(:disabled)::before,
+.mode:focus-visible:not(:disabled)::before {
+  opacity: 1;
+}
+
+/* The muted blurb would be unreadable once the row inverts. */
+.mode:hover:not(:disabled) .mode-blurb,
+.mode:focus-visible:not(:disabled) .mode-blurb {
+  color: rgba(255, 255, 255, 0.82);
 }
 
 .mode:disabled {
@@ -637,5 +691,9 @@ body {
   .ledger-row.is-new {
     animation: none;
     background-color: var(--flash);
+  }
+
+  .mode {
+    transition: none;
   }
 }

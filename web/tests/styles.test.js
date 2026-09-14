@@ -105,3 +105,16 @@ test('every animated selector has a reduced-motion alternative', () => {
   }
   assert.match(reduced, /animation:\s*none/);
 });
+
+test('the masthead field keeps body text legible', () => {
+  const token = CSS.match(/--field:\s*(#[0-9a-f]{6})/i);
+  assert.ok(token, '--field token present');
+  const luminance = (hex) => {
+    const parts = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255);
+    const [r, g, b] = parts.map((c) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4));
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  };
+  // The lede sits on this ground at body size, so 4.5:1 is the bar, not 3:1.
+  const ratio = 1.05 / (luminance(token[1]) + 0.05);
+  assert.ok(ratio >= 4.5, `white on ${token[1]} is ${ratio.toFixed(2)}:1, below 4.5:1`);
+});
