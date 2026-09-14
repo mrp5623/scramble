@@ -78,12 +78,27 @@ test('the team name clamp has a ceiling that does not shout', () => {
 });
 
 test('every animated selector has a reduced-motion alternative', () => {
-  const at = CSS.indexOf('@media (prefers-reduced-motion: reduce)');
-  assert.ok(at > -1, 'reduced-motion block present');
-  const before = CSS.slice(0, at);
-  const reduced = CSS.slice(at);
+  const start = CSS.indexOf('@media (prefers-reduced-motion: reduce)');
+  assert.ok(start > -1, 'reduced-motion block present');
 
-  const animated = [...before.matchAll(/([.#][\w.-]+)\s*\{[^}]*animation:/g)].map((m) => m[1]);
+  // Excise the block by brace-matching, so animations are found wherever they sit --
+  // including after it, which is where a new section would naturally be appended.
+  let depth = 0;
+  let end = CSS.length;
+  for (let i = CSS.indexOf('{', start); i < CSS.length; i += 1) {
+    if (CSS[i] === '{') depth += 1;
+    else if (CSS[i] === '}') {
+      depth -= 1;
+      if (depth === 0) {
+        end = i + 1;
+        break;
+      }
+    }
+  }
+  const reduced = CSS.slice(start, end);
+  const rest = CSS.slice(0, start) + CSS.slice(end);
+
+  const animated = [...rest.matchAll(/([.#][\w.-]+)\s*\{[^}]*animation:/g)].map((m) => m[1]);
   assert.ok(animated.length > 0, 'the stylesheet animates something');
   for (const selector of animated) {
     assert.ok(reduced.includes(selector), `${selector} is animated but has no reduced-motion alternative`);
