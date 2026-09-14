@@ -35,3 +35,6 @@ experiments/legacy
 
 # The deployed dataset copy; data/nfl_qbs.json stays the single source of truth
 web/data/
+
+# Local dry-runs of the Pages assembly
+_site/

@@ -2,16 +2,22 @@
 
 [![CI](https://github.com/mrp5623/scramble/actions/workflows/ci.yml/badge.svg)](https://github.com/mrp5623/scramble/actions/workflows/ci.yml)
 
-**The Game**: A desktop trivia game where you're shown a random NFL
+**The Game**: A trivia game where you're shown a random NFL
 franchise and have to name a quarterback who took a snap for them at any point in their career, without replacement. Each correct QB adds their TOTAL career passing yards to your score across 25 rounds. A local leaderboard tracks the best runs.
 
 **The Experiments**: A reinforcement learning study to determine the optimal game strategy (see **Why?: The Experiments** below).
 
 ![Scramble screenshot](docs/screenshot.png)
 
-## Download & Play (Windows)
+## Play in your browser
 
-No build required — grab the latest release, unzip, and play:
+**[Play Scramble →](https://mrp5623.github.io/scramble/)**
+
+Play Classic on your own, or go head to head with one of three opponents from the study: Bob always takes the best quarterback available, Carl simulates forty possible futures before every pick, and Sal is a neural network that taught itself to save.
+
+## Original desktop version (Windows)
+
+The original C++/Qt game. It's no longer developed — the browser version above replaces it — but it still works. No build required: grab the latest release, unzip, and play:
 
 1. Download **`scramble-windows-x64.zip`** from the [latest release](https://github.com/mrp5623/scramble/releases/latest).
 2. Unzip it anywhere.
@@ -85,18 +91,27 @@ with no toolchain installed.
 | `scramble.*` | Game logic and dataset loading |
 | `team.*` | Team value type |
 | `data/nfl_qbs.json` | Bundled game data |
+| `web/` | Browser version: engine, opponents, UI, and tests |
 | `experiments/` | RL agent, baselines, simulator, and tests (the study) |
 | `docs/experiments/REPORT.md` | Full experiment write-up and findings |
 
 ## What's next
-- Redesign for web (ditch C++ front end)
 - Online leaderboard
 - Way to watch the different policies play the game in the actual application
 - Way to let players see how each policy would've played their last game differently from them
 
 ## Web app
 
-The browser version lives in `web/` and has no build step or dependencies.
+The browser version lives in `web/` and has no build step or dependencies. Every push to `main` that touches `web/` or the dataset tests it and deploys it to GitHub Pages.
+
+To run it locally, copy the dataset in once and serve the folder — ES modules won't load from `file://`:
+
+```bash
+mkdir -p web/data && cp data/nfl_qbs.json web/data/
+python -m http.server 8000 --directory web
+```
+
+Then open <http://localhost:8000>.
 
 Run the headless test suite from the repo root (requires Node 22+):
 
