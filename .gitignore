@@ -32,3 +32,6 @@ experiments/legacy
 
 # Visual brainstorming session artifacts
 .superpowers/
+
+# The deployed dataset copy; data/nfl_qbs.json stays the single source of truth
+web/data/
