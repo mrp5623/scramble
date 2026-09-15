@@ -24,3 +24,17 @@ test('the busy guard runs before the session is asked to do anything', () => {
   assert.match(SOURCE, /function submitAnswer\(\) \{\s*if \(busy\) return;/);
   assert.match(SOURCE, /function skipRound\(\) \{\s*if \(busy\) return;/);
 });
+
+test('the opponent beat never disables the answer input', () => {
+  // Disabling the focused input blurs it, which dismisses the soft keyboard on iOS.
+  const setBusy = SOURCE.match(/function setBusy\([\s\S]*?\n\}/);
+  assert.ok(setBusy, 'setBusy present');
+  assert.match(setBusy[0], /if \(control !== input\) control\.disabled = value;/);
+});
+
+test('each new round announces its team in the live region', () => {
+  assert.match(
+    SOURCE,
+    /setMessage\(`\$\{confirmation\} \$\{MIDDLE_DOT\} \$\{teamShort\(session\.currentTeam\)\}`\)/,
+  );
+});

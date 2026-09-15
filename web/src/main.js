@@ -134,9 +134,16 @@ function setMessage(text) {
   $('message').textContent = text;
 }
 
+// The text input is deliberately left enabled: disabling the focused element blurs
+// it, which dismisses the soft keyboard on iOS, and the refocus after the beat runs
+// outside a user gesture so mobile browsers will not raise it again. The busy guard
+// in submitAnswer/skipRound already rejects anything typed during the beat.
 function setBusy(value) {
   busy = value;
-  for (const control of $('answer-form').elements) control.disabled = value;
+  const input = $('answer');
+  for (const control of $('answer-form').elements) {
+    if (control !== input) control.disabled = value;
+  }
 }
 
 function handleResult(result, typed) {
@@ -159,7 +166,9 @@ function handleResult(result, typed) {
       return;
     }
     renderRound(result.row.round);
-    setMessage(confirmation);
+    // Name the new team in the live region. The scoreboard is replaced without one,
+    // so otherwise the only thing announced is the pick that just ended.
+    setMessage(`${confirmation} ${MIDDLE_DOT} ${teamShort(session.currentTeam)}`);
     if (!settleStuckRounds()) $('answer').focus();
   };
 

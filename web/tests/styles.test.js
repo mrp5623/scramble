@@ -98,10 +98,13 @@ test('every animated selector has a reduced-motion alternative', () => {
   const reduced = CSS.slice(start, end);
   const rest = CSS.slice(0, start) + CSS.slice(end);
 
-  const animated = [...rest.matchAll(/([.#][\w.-]+)\s*\{[^}]*animation:/g)].map((m) => m[1]);
+  const animated = [...rest.matchAll(/([.#][\w.-]+)\s*\{[^}]*(?:animation|transition):/g)].map((m) => m[1]);
   assert.ok(animated.length > 0, 'the stylesheet animates something');
   for (const selector of animated) {
-    assert.ok(reduced.includes(selector), `${selector} is animated but has no reduced-motion alternative`);
+    assert.ok(
+      reduced.includes(selector),
+      `${selector} is animated or transitioned but has no reduced-motion alternative`,
+    );
   }
   assert.match(reduced, /animation:\s*none/);
 });
