@@ -485,12 +485,6 @@ body {
   opacity: 1;
 }
 
-/* The muted blurb would be unreadable once the row inverts. */
-.mode:hover:not(:disabled) .mode-blurb,
-.mode:focus-visible:not(:disabled) .mode-blurb {
-  color: rgba(255, 255, 255, 0.82);
-}
-
 .mode:disabled {
   cursor: not-allowed;
 }
@@ -510,11 +504,6 @@ body {
 .mode-full {
   font-size: 0.875rem;
   font-weight: 700;
-}
-
-.mode-blurb {
-  max-width: 60ch;
-  color: var(--ink-muted);
 }
 
 .mode-status {

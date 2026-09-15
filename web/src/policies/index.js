@@ -13,8 +13,7 @@ export const POLICIES = {
   bob: {
     id: 'bob',
     name: 'Bob',
-    fullName: 'Best Option Bot',
-    blurb: 'Always takes the highest-yardage quarterback available.',
+    fullName: 'Greedy Bot',
     ready: true,
     pick: (game) => greedyPick(game),
   },
@@ -22,15 +21,13 @@ export const POLICIES = {
     id: 'carl',
     name: 'Carl',
     fullName: 'Monte Carlo rollout',
-    blurb: 'Simulates forty possible futures for each candidate before deciding.',
     ready: true,
     pick: (game, rng) => rolloutPick(game, rng),
   },
   sal: {
     id: 'sal',
     name: 'Sal',
-    fullName: 'Saving Artificial Learner',
-    blurb: 'A neural network trained on ~192,000 games. Nobody taught it to save.',
+    fullName: 'Trained Reinforcement Learning Agent',
     ready: false,
     pick: () => {
       throw new Error('Sal is not loaded yet -- call registerSal(agent) first');

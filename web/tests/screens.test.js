@@ -9,8 +9,8 @@ import {
 } from '../src/ui/screens.js';
 
 const FAKE_POLICIES = {
-  bob: { id: 'bob', name: 'Bob', fullName: 'Best Option Bot', blurb: 'Takes the best.', ready: true },
-  sal: { id: 'sal', name: 'Sal', fullName: 'Saving Artificial Learner', blurb: 'Saves.', ready: false },
+  bob: { id: 'bob', name: 'Bob', fullName: 'Best Option Bot', ready: true },
+  sal: { id: 'sal', name: 'Sal', fullName: 'Saving Artificial Learner', ready: false },
 };
 
 const count = (html, needle) => html.split(needle).length - 1;
@@ -50,10 +50,11 @@ test('an unready opponent is disabled and says why', () => {
 
 test('mode select escapes registry text', () => {
   const html = renderModeSelect([
-    { id: 'x', label: '<i>', fullName: null, blurb: 'a & b', status: 'ready' },
+    { id: 'x', label: '<i>', fullName: 'a & b', status: 'ready' },
   ]);
   assert.ok(html.includes('&lt;i&gt;'));
   assert.ok(html.includes('a &amp; b'));
+  assert.ok(!html.includes('<i>'));
 });
 
 test('the game shell holds every region main.js fills', () => {

@@ -16,7 +16,7 @@ const STATUS_TEXT = {
 
 export function modeOptions(policies, { failedIds = [] } = {}) {
   const options = [
-    { id: 'classic', label: 'Classic', fullName: null, blurb: 'Just you and the rosters.', status: 'ready' },
+    { id: 'classic', label: 'Classic', fullName: null, status: 'ready' },
   ];
   for (const policy of Object.values(policies)) {
     let status = 'ready';
@@ -25,7 +25,6 @@ export function modeOptions(policies, { failedIds = [] } = {}) {
       id: policy.id,
       label: `vs ${policy.name}`,
       fullName: policy.fullName,
-      blurb: policy.blurb,
       status,
     });
   }
@@ -46,8 +45,7 @@ function modeButton(option) {
   return `
     <li class="mode-item">
       <button type="button" class="mode" data-mode="${escapeHtml(option.id)}"${disabled}>
-        <span class="mode-name">${escapeHtml(option.label)}</span>${fullName}
-        <span class="mode-blurb">${escapeHtml(option.blurb)}</span>${status}
+        <span class="mode-name">${escapeHtml(option.label)}</span>${fullName}${status}
       </button>
     </li>`;
 }
