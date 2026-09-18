@@ -95,10 +95,18 @@ test('game over in Classic has no verdict to give', () => {
 
 test('game over offers saving, the leaderboard, and a way onward', () => {
   const html = renderGameOver({ modeLabel: 'Classic', resultText: null, scoresHtml: '', ledgerHtml: '', seed: 1 });
-  for (const id of ['save-form', 'player-name', 'leaderboard', 'play-again', 'change-mode']) {
+  for (const id of ['save-form', 'player-name', 'save-error', 'leaderboard', 'play-again', 'change-mode']) {
     assert.ok(html.includes(`id="${id}"`), id);
   }
-  assert.ok(html.includes('maxlength="20"'));
+});
+
+test('the name input matches the 12-letter rule and has somewhere to report errors', () => {
+  const html = renderGameOver({ modeLabel: 'Classic', resultText: null, scoresHtml: '', ledgerHtml: '', seed: 1 });
+  assert.ok(html.includes('maxlength="12"'));
+  assert.ok(html.includes('autocapitalize="characters"'));
+  assert.ok(html.includes('id="save-error"'));
+  assert.ok(html.includes('role="alert"'));
+  assert.ok(!html.includes('maxlength="20"'));
 });
 
 test('an empty leaderboard says so', () => {

@@ -90,10 +90,12 @@ export function renderGameOver({ modeLabel, resultText, scoresHtml, ledgerHtml, 
       <form id="save-form" class="save" novalidate>
         <label class="save-label" for="player-name">Name for the scoreboard</label>
         <div class="save-row">
-          <input id="player-name" class="answer-input" type="text" maxlength="20"
-            autocomplete="nickname" placeholder="Anonymous">
+          <input id="player-name" class="answer-input name-input" type="text" maxlength="12"
+            autocomplete="nickname" autocapitalize="characters" spellcheck="false"
+            placeholder="ANONYMOUS">
           <button type="submit" class="btn btn-primary">Save score</button>
         </div>
+        <p id="save-error" class="save-error" role="alert"></p>
       </form>
       <div id="leaderboard" class="leaderboard"></div>
       <div class="actions">
