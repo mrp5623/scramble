@@ -6,6 +6,7 @@ import {
   renderGameShell,
   renderGameOver,
   renderLeaderboard,
+  renderDailyBoard,
 } from '../src/ui/screens.js';
 
 const FAKE_POLICIES = {
@@ -147,17 +148,41 @@ test('an empty leaderboard says so', () => {
   assert.ok(renderLeaderboard([]).includes('No scores saved yet.'));
 });
 
-test('the leaderboard ranks entries and highlights the one just saved', () => {
+test('the leaderboard ranks entries and highlights the row just saved', () => {
   const scores = [
-    { name: 'Mike', score: 1231400, mode: 'bob', seed: 1, date: 'd1' },
-    { name: '<Ann>', score: 1200000, mode: 'bob', seed: 2, date: 'd2' },
+    { id: 1, name: 'MIKE', score: 1231400 },
+    { id: 2, name: '<ANN>', score: 1200000 },
   ];
-  const html = renderLeaderboard(scores, { highlightDate: 'd2' });
+  const html = renderLeaderboard(scores, { highlightId: 2 });
   assert.equal(count(html, 'class="board-row'), 2);
   assert.ok(html.includes('1,231,400'));
-  assert.ok(html.includes('&lt;Ann&gt;'));
+  assert.ok(html.includes('&lt;ANN&gt;'));
   assert.equal(count(html, 'is-you'), 1);
-  assert.ok(html.indexOf('Mike') < html.indexOf('&lt;Ann&gt;'));
+  assert.ok(html.indexOf('MIKE') < html.indexOf('&lt;ANN&gt;'));
+});
+
+test('the leaderboard highlights nothing without an id', () => {
+  const html = renderLeaderboard([{ id: 1, name: 'MIKE', score: 5 }]);
+  assert.equal(count(html, 'is-you'), 0);
+});
+
+test('the daily board shows the day, your score, and a way back', () => {
+  const html = renderDailyBoard({
+    dayKey: '2026-09-17',
+    yourScore: 1231400,
+    boardHtml: '<ol class="board">ROWS</ol>',
+  });
+  assert.ok(html.includes('2026-09-17'));
+  assert.ok(html.includes('1,231,400'));
+  assert.ok(html.includes('<ol class="board">ROWS</ol>'));
+  assert.ok(html.includes('id="back-to-modes"'));
+  assert.ok(!html.includes('id="save-form"'), 'the daily board is read-only');
+});
+
+test('the daily board escapes its own fields', () => {
+  const html = renderDailyBoard({ dayKey: '<script>', yourScore: null, boardHtml: '' });
+  assert.ok(html.includes('&lt;script&gt;'));
+  assert.ok(!html.includes('<script>'));
 });
 
 test('game over escapes its own text fields', () => {

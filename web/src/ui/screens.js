@@ -119,13 +119,40 @@ export function renderGameOver({ modeLabel, resultText, scoresHtml, ledgerHtml, 
     </section>`;
 }
 
-export function renderLeaderboard(scores, { highlightDate = null } = {}) {
+export function renderLeaderboard(scores, { highlightId = null } = {}) {
   const title = '<h2 class="board-title">Top scores</h2>';
   if (scores.length === 0) return `${title}<p class="board-empty">No scores saved yet.</p>`;
 
   const rows = scores.map((s, i) => {
-    const you = highlightDate !== null && s.date === highlightDate ? ' is-you' : '';
+    const you = highlightId !== null && s.id === highlightId ? ' is-you' : '';
     return `<li class="board-row${you}"><span class="board-rank num" aria-hidden="true">${i + 1}</span><span class="board-name">${escapeHtml(s.name)}</span><span class="board-score num">${escapeHtml(formatYards(s.score))}</span></li>`;
   });
   return `${title}<ol class="board">${rows.join('')}</ol>`;
+}
+
+/**
+ * Today's daily board, read-only. Reached from an already-played Daily Special row --
+ * without it a player cannot check whether they have been passed until tomorrow.
+ *
+ * `boardHtml` is already-escaped markup from renderLeaderboard.
+ */
+export function renderDailyBoard({ dayKey, yourScore, boardHtml }) {
+  const yours =
+    yourScore === null || yourScore === undefined
+      ? ''
+      : `<p class="daily-yours">You scored <span class="num">${escapeHtml(formatYards(yourScore))}</span></p>`;
+  return `
+    <section class="card screen-daily">
+      <div class="topbar">
+        <span class="topbar-round">Daily</span>
+        <span class="topbar-mode">${escapeHtml(dayKey)}</span>
+      </div>
+      <h1 class="final-result">Today's board</h1>
+      ${yours}
+      <div class="leaderboard">${boardHtml}</div>
+      <div class="actions">
+        <button type="button" id="back-to-modes" class="btn btn-primary">Back</button>
+      </div>
+      <p class="daily-note">One game a day. The next puzzle lands at midnight Eastern.</p>
+    </section>`;
 }
