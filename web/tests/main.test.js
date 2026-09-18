@@ -32,6 +32,21 @@ test('the opponent beat never disables the answer input', () => {
   assert.match(setBusy[0], /if \(control !== input\) control\.disabled = value;/);
 });
 
+test("the daily's seed is derived once at game start, never re-read mid-game", () => {
+  // Re-reading todayKey() during play would change the puzzle under a player at
+  // midnight. startGame captures it; nothing else calls seedForDay.
+  assert.equal((SOURCE.match(/seedForDay\(/g) ?? []).length, 1);
+  assert.match(SOURCE, /dailyDay = daily \? todayKey\(\) : null/);
+});
+
+test('a rejected name never reaches the network', () => {
+  // The denylist check must run before saveScore, not after.
+  const blockedAt = SOURCE.indexOf('isBlockedName(');
+  const saveAt = SOURCE.indexOf('await saveScore(');
+  assert.ok(blockedAt > -1 && saveAt > -1);
+  assert.ok(blockedAt < saveAt, 'denylist is checked before saving');
+});
+
 test('each new round announces its team in the live region', () => {
   assert.match(
     SOURCE,

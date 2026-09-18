@@ -96,13 +96,19 @@ with no toolchain installed.
 | `docs/experiments/REPORT.md` | Full experiment write-up and findings |
 
 ## What's next
-- Online leaderboard
 - Way to watch the different policies play the game in the actual application
 - Way to let players see how each policy would've played their last game differently from them
 
 ## Web app
 
 The browser version lives in `web/` and has no build step or dependencies. Vercel deploys it on every push to `main`, and GitHub Actions runs the test suite on every push and pull request.
+
+Scores go to a global leaderboard. **Daily Special** deals the same 25 teams to
+everyone who plays that day — once per day, on its own board — and Classic and the
+three bot modes share an all-time board. A daily run counts for both.
+
+Scores are submitted by the browser and are not verified server-side, so treat the
+board as a scoreboard among friends rather than a record.
 
 To run it locally, copy the dataset in once and serve the folder — ES modules won't load from `file://`:
 
@@ -112,6 +118,9 @@ python -m http.server 8000 --directory web
 ```
 
 Then open <http://localhost:8000>.
+
+The leaderboard needs no setup: `web/src/config.js` is committed, and any Supabase
+failure degrades to an empty board with the game fully playable.
 
 Run the headless test suite from the repo root (requires Node 22+):
 

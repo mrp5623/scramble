@@ -9,6 +9,8 @@ import { POLICIES, getPolicy, registerSal } from './policies/index.js';
 import { loadAgent } from './policies/agent.js';
 import { createSession } from './session.js';
 import { saveScore, topScores } from './storage.js';
+import { todayKey, seedForDay, readDaily, writeDaily } from './daily.js';
+import { isBlockedName } from './denylist.js';
 import { teamStyle } from './teams.js';
 import {
   shortTeamName,
@@ -28,6 +30,7 @@ import {
   renderGameShell,
   renderGameOver,
   renderLeaderboard,
+  renderDailyBoard,
 } from './ui/screens.js';
 
 // Long enough to read as the opponent taking a turn, short enough that 25 of them
@@ -41,6 +44,9 @@ let screen = 'boot';
 let modeId = null;
 let session = null;
 let busy = false;
+// The daily's date, captured when the game starts. Never re-read mid-game: a player
+// crossing Eastern midnight must keep the puzzle they began.
+let dailyDay = null;
 const failedIds = [];
 
 const $ = (id) => document.getElementById(id);
@@ -50,6 +56,7 @@ function opponentView(s) {
 }
 
 function modeLabel(s) {
+  if (dailyDay) return 'Daily Special';
   return s.opponent ? `vs ${s.opponent.name}` : 'Classic';
 }
 
@@ -59,14 +66,28 @@ function teamShort(code) {
 
 /* ---------- Mode select ---------- */
 
+function dailyState() {
+  const record = readDaily();
+  return record && record.day === todayKey()
+    ? { played: true, score: record.score }
+    : { played: false, score: null };
+}
+
 function showModeSelect({ keepFocus = false } = {}) {
   const focusedMode = keepFocus ? document.activeElement?.dataset?.mode : null;
   screen = 'select';
   session = null;
-  app.innerHTML = renderModeSelect(modeOptions(POLICIES, { failedIds }));
+  app.innerHTML = renderModeSelect(modeOptions(POLICIES, { failedIds, daily: dailyState() }));
 
   for (const button of app.querySelectorAll('button[data-mode]')) {
-    button.addEventListener('click', () => startGame(button.dataset.mode));
+    button.addEventListener('click', () => {
+      // A daily already played opens its board instead of starting a second run.
+      if (button.dataset.mode === 'daily' && dailyState().played) {
+        showDailyBoard();
+        return;
+      }
+      startGame(button.dataset.mode);
+    });
   }
   const target =
     (focusedMode && app.querySelector(`button[data-mode="${focusedMode}"]:not(:disabled)`)) ||
@@ -78,8 +99,10 @@ function showModeSelect({ keepFocus = false } = {}) {
 
 function startGame(id) {
   modeId = id;
-  const opponent = id === 'classic' ? null : getPolicy(id);
-  session = createSession({ roster, opponent, seed: randomSeed() });
+  const daily = id === 'daily';
+  dailyDay = daily ? todayKey() : null;
+  const opponent = daily || id === 'classic' ? null : getPolicy(id);
+  session = createSession({ roster, opponent, seed: daily ? seedForDay(dailyDay) : randomSeed() });
   screen = 'game';
   busy = false;
   app.innerHTML = renderGameShell();
@@ -212,24 +235,28 @@ function showGameOver() {
     seed: finished.seed,
   });
 
-  refreshLeaderboard(mode, null);
+  const day = dailyDay;
+  refreshLeaderboard({ day }, null);
 
   let saved = false;
   $('save-form').addEventListener('submit', async (event) => {
     event.preventDefault();
     if (saved) return;
+
+    // Checked before the form is disabled, so a rejected name can be corrected.
+    const name = cleanName($('player-name').value);
+    if (isBlockedName(name)) {
+      $('save-error').textContent = 'Pick a different name.';
+      return;
+    }
+    $('save-error').textContent = '';
+
     saved = true;
     for (const control of $('save-form').elements) control.disabled = true;
 
-    const date = new Date().toISOString();
-    await saveScore({
-      name: cleanName($('player-name').value),
-      score: finished.youScore,
-      mode,
-      seed: finished.seed,
-      date,
-    });
-    await refreshLeaderboard(mode, date);
+    const row = await saveScore({ name, score: finished.youScore, seed: finished.seed, day });
+    if (day) writeDaily({ day, score: finished.youScore, name, id: row?.id ?? null });
+    await refreshLeaderboard({ day }, row?.id ?? null);
     $('play-again')?.focus();
   });
   $('play-again').addEventListener('click', () => startGame(mode));
@@ -237,11 +264,24 @@ function showGameOver() {
   $('player-name').focus();
 }
 
-async function refreshLeaderboard(mode, highlightDate) {
-  const scores = await topScores(mode, 10);
+async function refreshLeaderboard({ day = null } = {}, highlightId) {
+  const scores = await topScores({ day, limit: 10 });
   const board = $('leaderboard');
   // The player may have already left for another screen.
-  if (board) board.innerHTML = renderLeaderboard(scores, { highlightDate });
+  if (board) board.innerHTML = renderLeaderboard(scores, { highlightId });
+}
+
+async function showDailyBoard() {
+  const day = todayKey();
+  const record = readDaily();
+  screen = 'daily-board';
+  const scores = await topScores({ day, limit: 10 });
+  app.innerHTML = renderDailyBoard({
+    dayKey: day,
+    yourScore: record?.score ?? null,
+    boardHtml: renderLeaderboard(scores, { highlightId: record?.id ?? null }),
+  });
+  $('back-to-modes').addEventListener('click', () => showModeSelect());
 }
 
 /* ---------- Boot ---------- */
