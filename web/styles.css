@@ -489,6 +489,33 @@ body {
   cursor: not-allowed;
 }
 
+/*
+ * The Daily Special is the one row printed on the turf ground -- the same surface,
+ * with the same scanlines, as the masthead directly above it. The eye runs wordmark
+ * -> today's game -> everything else, so which to play first is said by hierarchy
+ * rather than by a word or a badge.
+ *
+ * White on --field measures 8.02:1, and darkening alternate rows only raises it.
+ * The hover rule below uses the `background` shorthand, which resets
+ * background-image, so the scanlines clear themselves when the row inverts to ink --
+ * keep it a shorthand if you touch it.
+ */
+.mode[data-mode='daily'] {
+  color: var(--stock);
+  background-color: var(--field);
+  background-image: repeating-linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.2) 0 2px,
+    transparent 2px 4px
+  );
+}
+
+/* On every other row the blocky cursor marks hover. Here it is always lit, which is
+   how a select screen shows you where to start. */
+.mode[data-mode='daily']::before {
+  opacity: 1;
+}
+
 .mode-name {
   font-stretch: var(--display-stretch);
   font-weight: 800;
