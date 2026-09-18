@@ -16,6 +16,7 @@
   --loss: #a3241b; /* 7.43:1 on stock */
   --flash: #ececec; /* the newest ledger row and your leaderboard entry */
   --field: #0b5d2e; /* home screen turf ground; white text on it is 8.02:1 */
+  --bulb: #ffb000; /* scoreboard digits ONLY; 9.50:1 on --ink. A second use is drift. */
 
   --font: 'Archivo', 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
   --display-stretch: 62%;
@@ -394,6 +395,12 @@ body {
 /* ---------- Mode select ---------- */
 
 .masthead {
+  /* Wordmark and scoreboard share the first row; the lede takes its own beneath. */
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3) var(--space-4);
   padding: var(--space-6) var(--space-4) var(--space-5);
   color: var(--stock);
   /* Scanlines ride in the background layer, so they sit behind the text without
@@ -409,6 +416,7 @@ body {
 }
 
 .wordmark {
+  flex: 1 1 auto;
   margin: 0;
   color: var(--stock);
   font-stretch: var(--display-stretch);
@@ -426,10 +434,43 @@ body {
 }
 
 .lede {
+  flex: 1 1 100%;
   max-width: 40ch;
   margin: var(--space-3) 0 0;
   font-size: 1.0625rem;
   font-weight: 600;
+}
+
+/*
+ * A bulb board, not a neon sign. The difference is physicality: a stock-coloured
+ * bezel so it reads as trim bolted to a wall (ink on field is only 2.17:1, so a
+ * black panel needs the light frame to separate at all), a faint amber dot grid for
+ * the unlit bulbs, and NO GLOW -- no shadow, no blur. Glow is what would make
+ * amber-on-black read as a betting app, which PRODUCT.md names as an anti-reference.
+ */
+.scoreboard-btn {
+  flex: 0 0 auto;
+  padding: var(--space-2) var(--space-3);
+  background-color: var(--ink);
+  background-image: radial-gradient(rgba(255, 176, 0, 0.16) 34%, transparent 36%);
+  background-size: 6px 6px;
+  border: var(--rule-mid) solid var(--stock);
+  border-radius: 0;
+  cursor: pointer;
+}
+
+/* The global focus ring is ink, which is invisible on this panel and nearly so on
+   the turf behind it. Amber reads on both: 9.50:1 here, 4.38:1 on the field. */
+.scoreboard-btn:focus-visible {
+  outline-color: var(--bulb);
+}
+
+.scoreboard-digits {
+  display: block;
+  color: var(--bulb);
+  font-size: 1.125rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
 }
 
 /* A ruled lineup rather than a grid of identical cards. */

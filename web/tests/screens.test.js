@@ -7,6 +7,7 @@ import {
   renderGameOver,
   renderLeaderboard,
   renderDailyBoard,
+  renderScoreboardButton,
 } from '../src/ui/screens.js';
 
 const FAKE_POLICIES = {
@@ -90,6 +91,38 @@ test('mode select escapes registry text', () => {
   assert.ok(html.includes('&lt;i&gt;'));
   assert.ok(html.includes('a &amp; b'));
   assert.ok(!html.includes('<i>'));
+});
+
+test('the scoreboard shows dashes when nobody has played today', () => {
+  const html = renderScoreboardButton({ topScore: null });
+  assert.ok(html.includes('id="scoreboard"'));
+  assert.ok(html.includes('–––'));
+  assert.ok(html.includes('aria-label="Scoreboard, no scores yet today"'));
+});
+
+test("the scoreboard shows today's leading score", () => {
+  const html = renderScoreboardButton({ topScore: 1183984 });
+  assert.ok(html.includes('1,183,984'));
+  assert.ok(html.includes('today&#39;s best 1,183,984'));
+});
+
+test('the digits are hidden from screen readers, which read the label instead', () => {
+  const html = renderScoreboardButton({ topScore: 1183984 });
+  assert.ok(html.includes('aria-hidden="true"'));
+  // The number appears once for sighted users and once inside the label.
+  assert.equal(html.split('1,183,984').length - 1, 2);
+});
+
+test('mode select carries the scoreboard inside the masthead', () => {
+  const html = renderModeSelect(modeOptions(ORDERED_POLICIES), { topScore: 500 });
+  assert.ok(html.includes('id="scoreboard"'));
+  assert.ok(html.indexOf('id="scoreboard"') < html.indexOf('class="lede"'));
+  assert.ok(html.indexOf('id="wordmark"') < html.indexOf('id="scoreboard"'));
+});
+
+test('mode select still renders without a score', () => {
+  const html = renderModeSelect(modeOptions(ORDERED_POLICIES));
+  assert.ok(html.includes('–––'));
 });
 
 test('the game shell holds every region main.js fills', () => {

@@ -62,11 +62,28 @@ function modeButton(option) {
     </li>`;
 }
 
-export function renderModeSelect(options) {
+// Three en dashes: an unlit board. Doubles as a nudge that today is still open.
+const NO_SCORE = '–––';
+
+/**
+ * The masthead scoreboard. Digits only, with the meaning carried by aria-label --
+ * the number alone does not say what it counts.
+ */
+export function renderScoreboardButton({ topScore = null } = {}) {
+  const has = typeof topScore === 'number';
+  const digits = has ? formatYards(topScore) : NO_SCORE;
+  const label = has
+    ? `Scoreboard, today's best ${formatYards(topScore)}`
+    : 'Scoreboard, no scores yet today';
+  return `<button type="button" id="scoreboard" class="scoreboard-btn" aria-label="${escapeHtml(label)}"><span class="scoreboard-digits num" aria-hidden="true">${escapeHtml(digits)}</span></button>`;
+}
+
+export function renderModeSelect(options, { topScore = null } = {}) {
   return `
     <section class="card screen-select" aria-labelledby="wordmark">
       <header class="masthead">
         <h1 id="wordmark" class="wordmark">Scramble</h1>
+        ${renderScoreboardButton({ topScore })}
         <p class="lede">Name a quarterback for each team. Twenty-five rounds. No repeats.</p>
       </header>
       <ol class="modes">${options.map(modeButton).join('')}</ol>
