@@ -4,6 +4,8 @@
  *
  * Every `pick` shares the signature (game, rng) -> qbName | null. Policies that
  * don't need randomness ignore `rng` so the caller never has to special-case them.
+ *
+ * Key order is the menu order -- ui/screens.js iterates this object directly.
  */
 import { greedyPick } from './greedy.js';
 import { rolloutPick } from './rollout.js';
@@ -17,13 +19,6 @@ export const POLICIES = {
     ready: true,
     pick: (game) => greedyPick(game),
   },
-  carl: {
-    id: 'carl',
-    name: 'Carl',
-    fullName: 'Monte Carlo rollout',
-    ready: true,
-    pick: (game, rng) => rolloutPick(game, rng),
-  },
   sal: {
     id: 'sal',
     name: 'Sal',
@@ -32,6 +27,13 @@ export const POLICIES = {
     pick: () => {
       throw new Error('Sal is not loaded yet -- call registerSal(agent) first');
     },
+  },
+  carl: {
+    id: 'carl',
+    name: 'Carl',
+    fullName: 'Monte Carlo rollout',
+    ready: true,
+    pick: (game, rng) => rolloutPick(game, rng),
   },
 };
 

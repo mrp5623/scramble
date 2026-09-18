@@ -13,7 +13,41 @@ const FAKE_POLICIES = {
   sal: { id: 'sal', name: 'Sal', fullName: 'Saving Artificial Learner', ready: false },
 };
 
+// A separate fixture: FAKE_POLICIES is indexed positionally by the loading/failed
+// tests above and must keep exactly two entries.
+const ORDERED_POLICIES = {
+  bob: { id: 'bob', name: 'Bob', fullName: 'Greedy Bot', ready: true },
+  sal: { id: 'sal', name: 'Sal', fullName: 'Trained Reinforcement Learning Agent', ready: true },
+  carl: { id: 'carl', name: 'Carl', fullName: 'Monte Carlo rollout', ready: true },
+};
+
 const count = (html, needle) => html.split(needle).length - 1;
+
+test('the menu leads with the daily, then Classic, then the bots in registry order', () => {
+  const options = modeOptions(ORDERED_POLICIES, { daily: { played: false, score: null } });
+  assert.deepEqual(
+    options.map((o) => o.id),
+    ['daily', 'classic', 'bob', 'sal', 'carl'],
+  );
+  assert.equal(options[0].label, 'Daily Special');
+});
+
+test('without daily state the menu is unchanged', () => {
+  const options = modeOptions(ORDERED_POLICIES);
+  assert.deepEqual(
+    options.map((o) => o.id),
+    ['classic', 'bob', 'sal', 'carl'],
+  );
+});
+
+test('an unplayed daily explains itself; a played one shows the score', () => {
+  const fresh = modeOptions(ORDERED_POLICIES, { daily: { played: false, score: null } })[0];
+  assert.equal(fresh.fullName, 'One game a day, same teams for everyone');
+
+  const done = modeOptions(ORDERED_POLICIES, { daily: { played: true, score: 1231400 } })[0];
+  assert.equal(done.fullName, 'Today: 1,231,400');
+  assert.equal(done.status, 'ready', 'a played daily stays clickable so the board can be read');
+});
 
 test('modeOptions lists Classic first, then one option per opponent', () => {
   const options = modeOptions(FAKE_POLICIES);

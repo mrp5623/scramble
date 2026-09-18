@@ -57,6 +57,11 @@ test('the registry exposes Bob with the shared pick signature', () => {
   assert.equal(getPolicy('bob').pick(g, null), 'peyton manning');
 });
 
+test('the registry orders the opponents Bob, Sal, Carl', () => {
+  // Key order is the menu order -- ui/screens.js iterates this object directly.
+  assert.deepEqual(Object.keys(POLICIES), ['bob', 'sal', 'carl']);
+});
+
 test('getPolicy rejects unknown ids', () => {
   assert.throws(() => getPolicy('nope'), /Unknown policy/);
 });

@@ -14,10 +14,22 @@ const STATUS_TEXT = {
   failed: 'Unavailable right now.',
 };
 
-export function modeOptions(policies, { failedIds = [] } = {}) {
-  const options = [
-    { id: 'classic', label: 'Classic', fullName: null, status: 'ready' },
-  ];
+const DAILY_BLURB = 'One game a day, same teams for everyone';
+
+export function modeOptions(policies, { failedIds = [], daily = null } = {}) {
+  const options = [];
+  if (daily) {
+    options.push({
+      id: 'daily',
+      label: 'Daily Special',
+      // The one row that needs explaining, now that the muted blurbs are gone. Once
+      // played it reports the score instead, and stays clickable: a player who has
+      // already played still needs to see whether they have been passed.
+      fullName: daily.played ? `Today: ${formatYards(daily.score ?? 0)}` : DAILY_BLURB,
+      status: 'ready',
+    });
+  }
+  options.push({ id: 'classic', label: 'Classic', fullName: null, status: 'ready' });
   for (const policy of Object.values(policies)) {
     let status = 'ready';
     if (!policy.ready) status = failedIds.includes(policy.id) ? 'failed' : 'loading';
