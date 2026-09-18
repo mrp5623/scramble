@@ -22,6 +22,14 @@ test('a classic session carries no opponent state', () => {
   assert.equal(s.rounds, 1);
 });
 
+test('a session exposes what is still pickable this round', () => {
+  const s = createSession({ roster: ROSTER, teamSequence: ['den', 'den'] });
+  const first = s.available();
+  assert.ok(Array.isArray(first) && first.length > 0);
+  s.submit(first[0]);
+  assert.ok(!s.available().includes(first[0]), 'a used quarterback stops being offered');
+});
+
 test('a matched answer ends the turn and records the round', () => {
   const s = createSession({ roster: ROSTER, teamSequence: ['den', 'crd'] });
   const result = s.submit('peyton manning');

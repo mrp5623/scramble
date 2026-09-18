@@ -99,10 +99,12 @@ export function renderGameShell() {
       <form id="answer-form" class="answer" autocomplete="off" novalidate>
         <label class="visually-hidden" for="answer">Quarterback name</label>
         <input id="answer" class="answer-input" type="text" maxlength="40" autocomplete="off"
-          autocapitalize="words" spellcheck="false" enterkeyhint="go" placeholder="Name a quarterback">
+          autocapitalize="words" spellcheck="false" enterkeyhint="go" placeholder="Name a quarterback"
+          role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="suggest-list">
         <button type="submit" class="btn btn-primary">Submit</button>
         <button type="button" id="skip" class="btn btn-secondary">Skip <kbd class="hint">Shift+Enter</kbd></button>
       </form>
+      <div id="suggest" class="suggest"></div>
       <p id="message" class="message" role="status" aria-live="polite"></p>
       <div id="ledger" class="ledger-wrap"></div>
     </section>`;

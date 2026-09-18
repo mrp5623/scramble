@@ -238,6 +238,36 @@ body {
   color: var(--ink-muted);
 }
 
+/* Sits directly under the input, ruled like the menu rows rather than floating: this
+   is a printed list, not a dropdown shadow. Names only -- never yards, and never in
+   yards order, or the top row would always be the greedy pick. */
+.suggest {
+  padding: 0 var(--space-4);
+}
+
+.suggest-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: var(--rule-mid) solid var(--ink);
+}
+
+.suggest-item {
+  padding: var(--space-2) var(--space-3);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.suggest-item + .suggest-item {
+  border-top: var(--rule-thin) solid var(--rule);
+}
+
+.suggest-item:hover,
+.suggest-item.is-active {
+  background: var(--ink);
+  color: var(--stock);
+}
+
 .btn {
   display: inline-flex;
   align-items: center;

@@ -81,6 +81,15 @@ export function createSession({ roster, opponent = null, seed = null, teamSequen
       return !you.done && you.available().length === 0;
     },
 
+    /**
+     * The current team's quarterbacks that are still unused, yards-descending.
+     * The typeahead re-sorts alphabetically -- this order must not reach the player,
+     * or the top suggestion would always be the greedy pick.
+     */
+    available() {
+      return you.available();
+    },
+
     submit(input) {
       if (you.done) return { kind: 'ignored' };
       const result = resolveAnswer(you, input);

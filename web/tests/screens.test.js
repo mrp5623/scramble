@@ -140,6 +140,15 @@ test('the game shell holds every region main.js fills', () => {
   }
 });
 
+test('the game shell wires the input as a combobox over the suggestion list', () => {
+  const html = renderGameShell();
+  assert.ok(html.includes('id="suggest"'));
+  assert.ok(html.includes('role="combobox"'));
+  assert.ok(html.includes('aria-autocomplete="list"'));
+  assert.ok(html.includes('aria-expanded="false"'));
+  assert.ok(html.includes('aria-controls="suggest-list"'));
+});
+
 test('the answer input is labelled and the skip shortcut is shown', () => {
   const html = renderGameShell();
   assert.ok(html.includes('<label class="visually-hidden" for="answer">'));
