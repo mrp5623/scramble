@@ -30,7 +30,7 @@ import {
   renderGameShell,
   renderGameOver,
   renderLeaderboard,
-  renderDailyBoard,
+  renderScoreboardScreen,
 } from './ui/screens.js';
 
 // Long enough to read as the opponent taking a turn, short enough that 25 of them
@@ -47,6 +47,8 @@ let busy = false;
 // The daily's date, captured when the game starts. Never re-read mid-game: a player
 // crossing Eastern midnight must keep the puzzle they began.
 let dailyDay = null;
+// Today's leading score, shown on the masthead scoreboard. Null until it arrives.
+let topScore = null;
 const failedIds = [];
 
 const $ = (id) => document.getElementById(id);
@@ -77,18 +79,21 @@ function showModeSelect({ keepFocus = false } = {}) {
   const focusedMode = keepFocus ? document.activeElement?.dataset?.mode : null;
   screen = 'select';
   session = null;
-  app.innerHTML = renderModeSelect(modeOptions(POLICIES, { failedIds, daily: dailyState() }));
+  app.innerHTML = renderModeSelect(modeOptions(POLICIES, { failedIds, daily: dailyState() }), {
+    topScore,
+  });
 
   for (const button of app.querySelectorAll('button[data-mode]')) {
     button.addEventListener('click', () => {
-      // A daily already played opens its board instead of starting a second run.
+      // A daily already played opens the board instead of starting a second run.
       if (button.dataset.mode === 'daily' && dailyState().played) {
-        showDailyBoard();
+        showScoreboard();
         return;
       }
       startGame(button.dataset.mode);
     });
   }
+  $('scoreboard')?.addEventListener('click', () => showScoreboard());
   const target =
     (focusedMode && app.querySelector(`button[data-mode="${focusedMode}"]:not(:disabled)`)) ||
     app.querySelector('button[data-mode]:not(:disabled)');
@@ -271,15 +276,20 @@ async function refreshLeaderboard({ day = null } = {}, highlightId) {
   if (board) board.innerHTML = renderLeaderboard(scores, { highlightId });
 }
 
-async function showDailyBoard() {
+async function showScoreboard() {
   const day = todayKey();
   const record = readDaily();
-  screen = 'daily-board';
-  const scores = await topScores({ day, limit: 10 });
-  app.innerHTML = renderDailyBoard({
+  screen = 'scoreboard';
+  const [today, allTime] = await Promise.all([
+    topScores({ day, limit: 10 }),
+    topScores({ limit: 10 }),
+  ]);
+  const highlightId = record?.id ?? null;
+  app.innerHTML = renderScoreboardScreen({
     dayKey: day,
-    yourScore: record?.score ?? null,
-    boardHtml: renderLeaderboard(scores, { highlightId: record?.id ?? null }),
+    yourScore: record?.day === day ? record.score : null,
+    todayHtml: renderLeaderboard(today, { highlightId, title: 'Today' }),
+    allTimeHtml: renderLeaderboard(allTime, { highlightId, title: 'All time' }),
   });
   $('back-to-modes').addEventListener('click', () => showModeSelect());
 }
@@ -298,6 +308,15 @@ async function boot() {
     .finally(() => {
       if (screen === 'select') showModeSelect({ keepFocus: true });
     });
+
+  // Today's leader feeds the masthead scoreboard. Deliberately not awaited -- the menu
+  // must render without waiting on the network, and topScores already degrades to [].
+  topScores({ day: todayKey(), limit: 1 })
+    .then((rows) => {
+      topScore = rows[0]?.score ?? null;
+      if (screen === 'select') showModeSelect({ keepFocus: true });
+    })
+    .catch(() => {});
 
   try {
     roster = await fetchRoster('data/nfl_qbs.json');

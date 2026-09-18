@@ -47,6 +47,18 @@ test('a rejected name never reaches the network', () => {
   assert.ok(blockedAt < saveAt, 'denylist is checked before saving');
 });
 
+test("today's top score is fetched without blocking the menu", () => {
+  // No await on this call: the menu must render before the network answers.
+  assert.doesNotMatch(SOURCE, /await topScores\(\{ day: todayKey\(\), limit: 1 \}\)/);
+  assert.match(SOURCE, /topScores\(\{ day: todayKey\(\), limit: 1 \}\)\s*\n?\s*\.then/);
+});
+
+test('the scoreboard button opens the board screen', () => {
+  assert.match(SOURCE, /\$\('scoreboard'\)\?\.addEventListener/);
+  assert.ok(SOURCE.includes('renderScoreboardScreen'));
+  assert.ok(!SOURCE.includes('renderDailyBoard'));
+});
+
 test('each new round announces its team in the live region', () => {
   assert.match(
     SOURCE,

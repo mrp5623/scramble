@@ -6,7 +6,7 @@ import {
   renderGameShell,
   renderGameOver,
   renderLeaderboard,
-  renderDailyBoard,
+  renderScoreboardScreen,
   renderScoreboardButton,
 } from '../src/ui/screens.js';
 
@@ -199,21 +199,45 @@ test('the leaderboard highlights nothing without an id', () => {
   assert.equal(count(html, 'is-you'), 0);
 });
 
-test('the daily board shows the day, your score, and a way back', () => {
-  const html = renderDailyBoard({
-    dayKey: '2026-09-17',
-    yourScore: 1231400,
-    boardHtml: '<ol class="board">ROWS</ol>',
-  });
-  assert.ok(html.includes('2026-09-17'));
-  assert.ok(html.includes('1,231,400'));
-  assert.ok(html.includes('<ol class="board">ROWS</ol>'));
-  assert.ok(html.includes('id="back-to-modes"'));
-  assert.ok(!html.includes('id="save-form"'), 'the daily board is read-only');
+test('a leaderboard can be titled, and defaults to Top scores', () => {
+  assert.ok(renderLeaderboard([]).includes('Top scores'));
+  assert.ok(renderLeaderboard([], { title: 'Today' }).includes('Today'));
+  assert.ok(
+    renderLeaderboard([{ id: 1, name: 'MIKE', score: 5 }], { title: 'All time' }).includes('All time'),
+  );
 });
 
-test('the daily board escapes its own fields', () => {
-  const html = renderDailyBoard({ dayKey: '<script>', yourScore: null, boardHtml: '' });
+test('the scoreboard screen stacks today above all time', () => {
+  const html = renderScoreboardScreen({
+    dayKey: '2026-09-17',
+    yourScore: 1183984,
+    todayHtml: '<ol class="board">TODAY</ol>',
+    allTimeHtml: '<ol class="board">ALLTIME</ol>',
+  });
+  assert.ok(html.includes('2026-09-17'));
+  assert.ok(html.includes('1,183,984'));
+  assert.ok(html.indexOf('TODAY') < html.indexOf('ALLTIME'));
+  assert.ok(html.includes('id="back-to-modes"'));
+  assert.ok(!html.includes('id="save-form"'), 'the scoreboard is read-only');
+});
+
+test('the scoreboard screen omits your score when you have not played today', () => {
+  const html = renderScoreboardScreen({
+    dayKey: '2026-09-17',
+    yourScore: null,
+    todayHtml: '',
+    allTimeHtml: '',
+  });
+  assert.ok(!html.includes('You scored'));
+});
+
+test('the scoreboard screen escapes its own fields', () => {
+  const html = renderScoreboardScreen({
+    dayKey: '<script>',
+    yourScore: null,
+    todayHtml: '',
+    allTimeHtml: '',
+  });
   assert.ok(html.includes('&lt;script&gt;'));
   assert.ok(!html.includes('<script>'));
 });
