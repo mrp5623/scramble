@@ -106,6 +106,14 @@ test("the scoreboard shows today's leading score", () => {
   assert.ok(html.includes('today&#39;s best 1,183,984'));
 });
 
+test('the scoreboard names itself on its own nameplate', () => {
+  const html = renderScoreboardButton({ topScore: 5 });
+  assert.ok(html.includes('class="scoreboard-label"'));
+  assert.ok(html.includes('>Scoreboard<'));
+  // The digits come first; the nameplate sits beneath them.
+  assert.ok(html.indexOf('scoreboard-digits') < html.indexOf('scoreboard-label'));
+});
+
 test('the digits are hidden from screen readers, which read the label instead', () => {
   const html = renderScoreboardButton({ topScore: 1183984 });
   assert.ok(html.includes('aria-hidden="true"'));

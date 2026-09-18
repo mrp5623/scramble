@@ -243,6 +243,12 @@ function showGameOver() {
   const day = dailyDay;
   refreshLeaderboard({ day }, null);
 
+  // The attempt is spent the moment the game ends, not when it is saved. Recording it
+  // only on save would let a player replay the daily until they liked the score and
+  // submit just that one: the database's unique index blocks a second row, not a
+  // second attempt. Saving later fills in the name and row id.
+  if (day) writeDaily({ day, score: finished.youScore, name: null, id: null });
+
   let saved = false;
   $('save-form').addEventListener('submit', async (event) => {
     event.preventDefault();

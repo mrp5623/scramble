@@ -450,7 +450,8 @@ body {
  */
 .scoreboard-btn {
   flex: 0 0 auto;
-  padding: var(--space-2) var(--space-3);
+  /* Deeper at the bottom: the nameplate sits in that space. */
+  padding: var(--space-2) var(--space-3) var(--space-3);
   background-color: var(--ink);
   background-image: radial-gradient(rgba(255, 176, 0, 0.16) 34%, transparent 36%);
   background-size: 6px 6px;
@@ -471,6 +472,22 @@ body {
   font-size: 1.125rem;
   font-weight: 800;
   letter-spacing: 0.06em;
+}
+
+/*
+ * The nameplate, printed on the frame rather than lit. Keeping it stock-white is what
+ * holds --bulb to its one job: amber means a lit bulb, white means paint. 17.40:1.
+ */
+.scoreboard-label {
+  display: block;
+  margin-top: var(--space-2);
+  padding-top: var(--space-1);
+  border-top: var(--rule-thin) solid rgba(255, 255, 255, 0.35);
+  color: var(--stock);
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
 }
 
 /* A ruled lineup rather than a grid of identical cards. */

@@ -75,7 +75,9 @@ export function renderScoreboardButton({ topScore = null } = {}) {
   const label = has
     ? `Scoreboard, today's best ${formatYards(topScore)}`
     : 'Scoreboard, no scores yet today';
-  return `<button type="button" id="scoreboard" class="scoreboard-btn" aria-label="${escapeHtml(label)}"><span class="scoreboard-digits num" aria-hidden="true">${escapeHtml(digits)}</span></button>`;
+  // aria-label on the button overrides its contents, so neither span is announced --
+  // the nameplate is for the eye, the label for the screen reader.
+  return `<button type="button" id="scoreboard" class="scoreboard-btn" aria-label="${escapeHtml(label)}"><span class="scoreboard-digits num" aria-hidden="true">${escapeHtml(digits)}</span><span class="scoreboard-label" aria-hidden="true">Scoreboard</span></button>`;
 }
 
 export function renderModeSelect(options, { topScore = null } = {}) {

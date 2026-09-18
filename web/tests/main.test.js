@@ -53,6 +53,17 @@ test("today's top score is fetched without blocking the menu", () => {
   assert.match(SOURCE, /topScores\(\{ day: todayKey\(\), limit: 1 \}\)\s*\n?\s*\.then/);
 });
 
+test('finishing the daily spends the attempt, even if the score is never saved', () => {
+  // writeDaily must run at game over, not only inside the save handler. Otherwise a
+  // player replays the daily until they like the score and submits only that one --
+  // the database's unique index blocks a second row, not a second attempt.
+  const atGameOver = SOURCE.indexOf('if (day) writeDaily(');
+  const atSaveForm = SOURCE.indexOf("$('save-form').addEventListener");
+  assert.ok(atGameOver > -1, 'writeDaily called at game over');
+  assert.ok(atSaveForm > -1);
+  assert.ok(atGameOver < atSaveForm, 'the attempt is recorded before the save handler');
+});
+
 test('the scoreboard button opens the board screen', () => {
   assert.match(SOURCE, /\$\('scoreboard'\)\?\.addEventListener/);
   assert.ok(SOURCE.includes('renderScoreboardScreen'));
