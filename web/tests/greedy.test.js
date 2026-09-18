@@ -52,7 +52,7 @@ test('returns null on a finished game rather than throwing', () => {
 
 test('the registry exposes Bob with the shared pick signature', () => {
   assert.equal(POLICIES.bob.name, 'Bob');
-  assert.equal(POLICIES.bob.fullName, 'Best Option Bot');
+  assert.equal(POLICIES.bob.fullName, 'Greedy Bot');
   const g = createGame({ roster: ROSTER, teamSequence: ['den'] });
   assert.equal(getPolicy('bob').pick(g, null), 'peyton manning');
 });
