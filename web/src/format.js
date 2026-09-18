@@ -13,7 +13,7 @@ const MIDDLE_DOT = '\u00b7';
 const ARROW = '\u2192';
 const ELLIPSIS = '\u2026';
 const ROMAN_SUFFIXES = new Set(['ii', 'iii', 'iv']);
-const NAME_LIMIT = 20;
+const NAME_LIMIT = 12;
 
 export function formatYards(yards) {
   return GROUPED.format(yards);
@@ -98,7 +98,17 @@ export function resultLine(youScore, botScore, opponentName) {
   return `Dead even with ${opponentName}.`;
 }
 
+/**
+ * Leaderboard names are letters only, uppercase, and at most 12 characters.
+ *
+ * No spaces is deliberate: it removes multi-word phrases, which is a whole category
+ * of abuse, and it keeps the denylist tractable. The output always satisfies the
+ * database's own `^[A-Z]{1,12}$` check, so a malformed name cannot reach the table.
+ */
 export function cleanName(raw) {
-  const name = String(raw ?? '').trim().replace(/\s+/g, ' ').slice(0, NAME_LIMIT).trim();
-  return name || 'Anonymous';
+  const letters = String(raw ?? '')
+    .replace(/[^A-Za-z]/g, '')
+    .toUpperCase()
+    .slice(0, NAME_LIMIT);
+  return letters || 'ANONYMOUS';
 }

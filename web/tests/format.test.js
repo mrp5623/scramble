@@ -116,10 +116,22 @@ test('resultLine describes the head-to-head outcome', () => {
   assert.equal(resultLine(1000, null, null), null);
 });
 
-test('cleanName trims, collapses, caps length, and falls back', () => {
-  assert.equal(cleanName('  Mike   P  '), 'Mike P');
-  assert.equal(cleanName('abcdefghijklmnopqrstuvwxyz'), 'abcdefghijklmnopqrst');
-  assert.equal(cleanName('abcdefghijklmnopqrs tuv'), 'abcdefghijklmnopqrs');
-  assert.equal(cleanName('   '), 'Anonymous');
-  assert.equal(cleanName(undefined), 'Anonymous');
+test('cleanName keeps letters only, uppercased, and caps at 12', () => {
+  assert.equal(cleanName('Mike'), 'MIKE');
+  assert.equal(cleanName('michael priore'), 'MICHAELPRIOR');
+  assert.equal(cleanName("O'Brien-Smith 99"), 'OBRIENSMITH');
+  assert.equal(cleanName('  spaced  out  '), 'SPACEDOUT');
+});
+
+test('cleanName falls back to ANONYMOUS when nothing usable is left', () => {
+  assert.equal(cleanName('   '), 'ANONYMOUS');
+  assert.equal(cleanName('123 !!'), 'ANONYMOUS');
+  assert.equal(cleanName(undefined), 'ANONYMOUS');
+  assert.equal(cleanName(null), 'ANONYMOUS');
+});
+
+test('cleanName output always satisfies the database constraint', () => {
+  for (const raw of ['Mike', 'michael priore', '123', '', 'Ω', 'a'.repeat(40)]) {
+    assert.match(cleanName(raw), /^[A-Z]{1,12}$/);
+  }
 });
