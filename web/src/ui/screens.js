@@ -86,7 +86,7 @@ export function renderModeSelect(options, { topScore = null } = {}) {
       <header class="masthead">
         <h1 id="wordmark" class="wordmark">Scramble</h1>
         ${renderScoreboardButton({ topScore })}
-        <p class="lede">Name a quarterback for each team. Twenty-five rounds. No repeats.</p>
+        <p class="lede">Name a quarterback for each team. Career passing yards are your score. Twenty-five rounds, no repeats.</p>
       </header>
       <ol class="modes">${options.map(modeButton).join('')}</ol>
     </section>`;
