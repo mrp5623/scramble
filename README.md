@@ -102,7 +102,7 @@ with no toolchain installed.
 
 ## Web app
 
-The browser version lives in `web/` and has no build step or dependencies. Every push to `main` that touches `web/` or the dataset tests it and deploys it to GitHub Pages.
+The browser version lives in `web/` and has no build step or dependencies. Vercel deploys it on every push to `main`, and GitHub Actions runs the test suite on every push and pull request.
 
 To run it locally, copy the dataset in once and serve the folder — ES modules won't load from `file://`:
 

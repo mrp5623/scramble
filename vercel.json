@@ -1,0 +1,5 @@
+{
+  "buildCommand": "mkdir -p _site/data && cp web/index.html web/styles.css _site/ && cp -r web/src web/weights _site/ && cp data/nfl_qbs.json _site/data/",
+  "outputDirectory": "_site",
+  "installCommand": ""
+}

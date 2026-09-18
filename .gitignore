@@ -36,5 +36,8 @@ experiments/legacy
 # The deployed dataset copy; data/nfl_qbs.json stays the single source of truth
 web/data/
 
-# Local dry-runs of the Pages assembly
+# Site assembly output (Vercel's build, and local dry-runs of it)
 _site/
+
+# Vercel CLI project link
+.vercel/
