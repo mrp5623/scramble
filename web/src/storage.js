@@ -1,49 +1,64 @@
 /**
- * The leaderboard seam: exactly two exports (spec section 9).
+ * The leaderboard seam: still exactly two exports (spec section 9), now backed by
+ * Supabase instead of localStorage.
  *
- * Both return Promises even though localStorage is synchronous, so a hosted backend
- * can later replace this module's body without changing a single call site.
+ * Both return Promises, which is why this swap touched no call site -- the original
+ * localStorage implementation was already async-shaped for exactly this change.
  *
- * Storage can be missing or throw -- private browsing, blocked site data, a full
- * quota. Scores are a convenience, so every failure degrades to "nothing saved"
- * rather than breaking the game.
+ * One table serves both boards. `day` is null for Classic and the bot modes and set
+ * for a Daily Special run; the all-time board ignores it, the daily board filters on
+ * it. A daily run therefore counts for both boards from one row.
+ *
+ * Scores are a convenience, so every failure -- offline, HTTP error, unconfigured
+ * project, garbage response -- degrades to "no scores" rather than breaking the game.
  */
-const KEY = 'scramble.scores.v1';
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config.js';
+import { deviceId } from './daily.js';
 
-function backing() {
+const ENDPOINT = `${SUPABASE_URL}/rest/v1/scores`;
+const COLUMNS = 'id,name,score';
+
+function headers(extra = {}) {
+  return {
+    apikey: SUPABASE_ANON_KEY,
+    Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+    'Content-Type': 'application/json',
+    ...extra,
+  };
+}
+
+/** Resolves to the inserted row's id, or null if it did not land. */
+export async function saveScore({ name, score, seed, day = null }) {
   try {
-    return globalThis.localStorage ?? null;
+    const res = await fetch(ENDPOINT, {
+      method: 'POST',
+      headers: headers({ Prefer: 'return=representation' }),
+      body: JSON.stringify({ name, score, seed, day, device_id: deviceId() }),
+    });
+    if (!res.ok) return null;
+    const rows = await res.json();
+    const id = Array.isArray(rows) ? rows[0]?.id : undefined;
+    return id == null ? null : { id };
   } catch {
     return null;
   }
 }
 
-function readAll(store) {
+/** `day` null reads the all-time board; a date reads that day's board. */
+export async function topScores({ day = null, limit = 10 } = {}) {
+  const params = new URLSearchParams({
+    select: COLUMNS,
+    order: 'score.desc,created_at.asc',
+    limit: String(limit),
+  });
+  if (day) params.set('day', `eq.${day}`);
+
   try {
-    const parsed = JSON.parse(store.getItem(KEY) ?? '[]');
-    return Array.isArray(parsed) ? parsed : [];
+    const res = await fetch(`${ENDPOINT}?${params}`, { headers: headers() });
+    if (!res.ok) return [];
+    const rows = await res.json();
+    return Array.isArray(rows) ? rows : [];
   } catch {
     return [];
   }
-}
-
-export async function saveScore({ name, score, mode, seed, date }) {
-  const store = backing();
-  if (!store) return;
-  const scores = readAll(store);
-  scores.push({ name, score, mode, seed, date });
-  try {
-    store.setItem(KEY, JSON.stringify(scores));
-  } catch {
-    // Quota exceeded or storage blocked: this score simply isn't kept.
-  }
-}
-
-export async function topScores(mode, limit = 10) {
-  const store = backing();
-  if (!store) return [];
-  return readAll(store)
-    .filter((s) => s.mode === mode)
-    .sort((a, b) => b.score - a.score || String(a.date).localeCompare(String(b.date)))
-    .slice(0, limit);
 }
