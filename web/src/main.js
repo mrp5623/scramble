@@ -32,6 +32,7 @@ import {
   renderLeaderboard,
   renderScoreboardScreen,
 } from './ui/screens.js';
+import { suggestQbs, renderSuggestions } from './ui/suggest.js';
 
 // Long enough to read as the opponent taking a turn, short enough that 25 of them
 // don't drag. Classic has no opponent and skips it.
@@ -44,6 +45,8 @@ let screen = 'boot';
 let modeId = null;
 let session = null;
 let busy = false;
+let suggestions = [];
+let suggestIndex = -1;
 // The daily's date, captured when the game starts. Never re-read mid-game: a player
 // crossing Eastern midnight must keep the puzzle they began.
 let dailyDay = null;
@@ -124,11 +127,37 @@ function startGame(id) {
     event.preventDefault();
     submitAnswer();
   });
+  $('answer').addEventListener('input', updateSuggestions);
   $('answer').addEventListener('keydown', (event) => {
     if (event.key === 'Enter' && event.shiftKey) {
       event.preventDefault();
       skipRound();
+      return;
     }
+    if (event.key === 'Escape') {
+      clearSuggestions();
+      return;
+    }
+    if ((event.key === 'ArrowDown' || event.key === 'ArrowUp') && suggestions.length > 0) {
+      event.preventDefault();
+      const step = event.key === 'ArrowDown' ? 1 : -1;
+      // Cycle over length+1 slots so -1 ("nothing active") stays reachable: shift into
+      // slot space, rotate, shift back. Arrowing past the last row returns to what was
+      // typed rather than wrapping straight to the top.
+      const slots = suggestions.length + 1;
+      suggestIndex = ((suggestIndex + 1 + step + slots) % slots) - 1;
+      paintSuggestions();
+      return;
+    }
+    // Enter with a row active takes that row; with none, the form submits what was typed.
+    if (event.key === 'Enter' && suggestIndex >= 0) {
+      event.preventDefault();
+      pickSuggestion(suggestions[suggestIndex]);
+    }
+  });
+  $('suggest').addEventListener('click', (event) => {
+    const row = event.target.closest('[data-qb]');
+    if (row) pickSuggestion(row.dataset.qb);
   });
   $('skip').addEventListener('click', skipRound);
 
@@ -145,6 +174,34 @@ function submitAnswer() {
 function skipRound() {
   if (busy) return;
   handleResult(session.skip(), '');
+}
+
+function paintSuggestions() {
+  const box = $('suggest');
+  if (!box) return;
+  box.innerHTML = renderSuggestions(suggestions, { activeIndex: suggestIndex });
+  const input = $('answer');
+  input.setAttribute('aria-expanded', suggestions.length > 0 ? 'true' : 'false');
+  if (suggestIndex >= 0) input.setAttribute('aria-activedescendant', `suggest-${suggestIndex}`);
+  else input.removeAttribute('aria-activedescendant');
+}
+
+function updateSuggestions() {
+  suggestions = busy ? [] : suggestQbs($('answer').value, session.available());
+  suggestIndex = -1;
+  paintSuggestions();
+}
+
+function clearSuggestions() {
+  suggestions = [];
+  suggestIndex = -1;
+  paintSuggestions();
+}
+
+/** A tapped or arrowed-to suggestion takes the ordinary submit path, nothing special. */
+function pickSuggestion(qb) {
+  $('answer').value = qb;
+  submitAnswer();
 }
 
 function renderRound(newestRound) {
@@ -164,6 +221,8 @@ function renderRound(newestRound) {
     newestRound,
   });
   $('answer').placeholder = `${teamShort(code)} quarterback`;
+  // A list left over from the previous team would offer the wrong quarterbacks.
+  clearSuggestions();
 }
 
 function setMessage(text) {

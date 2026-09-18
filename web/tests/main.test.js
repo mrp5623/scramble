@@ -80,6 +80,25 @@ test('the scoreboard button opens the board screen', () => {
   assert.ok(!SOURCE.includes('renderDailyBoard'));
 });
 
+test('the suggestion list is cleared whenever a round ends', () => {
+  // A list left over from the previous team would offer the wrong quarterbacks.
+  assert.ok(SOURCE.includes('clearSuggestions()'));
+  assert.match(SOURCE, /function renderRound[\s\S]*?clearSuggestions\(\)/);
+});
+
+test('selecting a suggestion goes through the normal submit path', () => {
+  // Not a private shortcut: the pick must produce the same confirmation, score and
+  // ledger row as typing the name out.
+  assert.match(SOURCE, /\$\('answer'\)\.value = qb;\s*\n?\s*submitAnswer\(\)/);
+});
+
+test('the typeahead keys are handled without breaking skip', () => {
+  assert.ok(SOURCE.includes("event.key === 'ArrowDown'"));
+  assert.ok(SOURCE.includes("event.key === 'ArrowUp'"));
+  assert.ok(SOURCE.includes("event.key === 'Escape'"));
+  assert.match(SOURCE, /event\.key === 'Enter' && event\.shiftKey/);
+});
+
 test('each new round announces its team in the live region', () => {
   assert.match(
     SOURCE,
