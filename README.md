@@ -101,7 +101,7 @@ with no toolchain installed.
 
 ## Web app
 
-The browser version lives in `web/` and has no build step or dependencies. Vercel deploys it on every push to `main`, and GitHub Actions runs the test suite on every push and pull request.
+The browser version lives in `web/` and has no build step or dependencies. Vercel deploys it on every push to `main`, and GitHub Actions runs the Python and web suites on pushes to `main` and pull requests against it.
 
 Scores go to a global leaderboard. **Daily Special** deals the same 25 teams to
 everyone who plays that day — once per day, on its own board — and Classic and the

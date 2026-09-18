@@ -5,7 +5,7 @@ import { readFileSync } from 'node:fs';
 const root = (p) => readFileSync(new URL(`../../${p}`, import.meta.url), 'utf8');
 
 const VERCEL = JSON.parse(root('vercel.json'));
-const TESTS = root('.github/workflows/test.yml');
+const CI = root('.github/workflows/ci.yml');
 
 test('vercel publishes an assembled site, not the repo', () => {
   assert.equal(VERCEL.outputDirectory, '_site');
@@ -21,17 +21,19 @@ test('the build ships only what the browser loads', () => {
   assert.doesNotMatch(build, /web\/tests|web\/tools|web\/package\.json|cp -r web\s/);
 });
 
-test('the test gate survived dropping Pages', () => {
-  assert.ok(TESTS.includes('node --test "web/tests/**/*.test.js"'));
-  assert.ok(TESTS.includes('branches: [main]'));
-  assert.ok(TESTS.includes('pull_request:'));
-  assert.ok(TESTS.includes('node-version: "22"'));
+test('CI still gates both suites after Pages was dropped', () => {
+  assert.ok(CI.includes('node --test "web/tests/**/*.test.js"'));
+  assert.ok(CI.includes('pytest experiments/tests/ -q'));
+  assert.ok(CI.includes('pull_request:'));
 });
 
 test('workflows are indented with spaces only', () => {
-  assert.ok(!TESTS.includes('\t'));
+  assert.ok(!CI.includes('\t'));
 });
 
-test('no GitHub Pages workflow remains', () => {
+test('Pages is gone, and the web suite is not gated twice', () => {
+  // ci.yml was always the test gate; pages.yml's test step only guarded its own
+  // publish. Adding a second workflow would run the web suite twice per push.
   assert.throws(() => root('.github/workflows/pages.yml'), /ENOENT/);
+  assert.throws(() => root('.github/workflows/test.yml'), /ENOENT/);
 });
