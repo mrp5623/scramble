@@ -109,7 +109,12 @@ export function renderGameShell() {
 }
 
 /** `scoresHtml` and `ledgerHtml` are already-escaped markup from renderScores/renderLedger. */
-export function renderGameOver({ modeLabel, resultText, scoresHtml, ledgerHtml, seed }) {
+export function renderGameOver({ modeLabel, resultText, scoresHtml, ledgerHtml, seed, daily = false }) {
+  // One game a day means there is no second attempt to offer. Showing "Play again"
+  // here is what let a finished daily be replayed on the same seed.
+  const onward = daily
+    ? '<button type="button" id="view-board" class="btn btn-primary">Scoreboard</button>'
+    : '<button type="button" id="play-again" class="btn btn-primary">Play again</button>';
   return `
     <section class="card screen-over">
       <div class="topbar">
@@ -130,7 +135,7 @@ export function renderGameOver({ modeLabel, resultText, scoresHtml, ledgerHtml, 
       </form>
       <div id="leaderboard" class="leaderboard"></div>
       <div class="actions">
-        <button type="button" id="play-again" class="btn btn-primary">Play again</button>
+        ${onward}
         <button type="button" id="change-mode" class="btn btn-secondary">Change mode</button>
       </div>
       ${ledgerHtml}

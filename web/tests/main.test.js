@@ -64,6 +64,16 @@ test('finishing the daily spends the attempt, even if the score is never saved',
   assert.ok(atGameOver < atSaveForm, 'the attempt is recorded before the save handler');
 });
 
+test('a spent daily cannot be restarted from any entry point', () => {
+  // The menu hides a spent daily, but Play again called startGame directly and
+  // handed out a second attempt on the same seed. The guard belongs in startGame,
+  // where every entry point has to pass through it.
+  const start = SOURCE.indexOf('function startGame(');
+  assert.ok(start > -1);
+  const body = SOURCE.slice(start, SOURCE.indexOf('\n}', start));
+  assert.match(body, /if \(daily && dailyState\(\)\.played\)/);
+});
+
 test('the scoreboard button opens the board screen', () => {
   assert.match(SOURCE, /\$\('scoreboard'\)\?\.addEventListener/);
   assert.ok(SOURCE.includes('renderScoreboardScreen'));

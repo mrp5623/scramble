@@ -103,8 +103,16 @@ function showModeSelect({ keepFocus = false } = {}) {
 /* ---------- Game ---------- */
 
 function startGame(id) {
-  modeId = id;
   const daily = id === 'daily';
+  // Defence in depth. The menu hides a spent daily, but Play again reached this
+  // function directly and handed out a second attempt on the same seed. Every entry
+  // point passes through here, so the guard belongs here too.
+  if (daily && dailyState().played) {
+    showScoreboard();
+    return;
+  }
+
+  modeId = id;
   dailyDay = daily ? todayKey() : null;
   const opponent = daily || id === 'classic' ? null : getPolicy(id);
   session = createSession({ roster, opponent, seed: daily ? seedForDay(dailyDay) : randomSeed() });
@@ -231,6 +239,7 @@ function showGameOver() {
   const mode = modeId;
   const opponent = opponentView(finished);
   screen = 'over';
+  const day = dailyDay;
 
   app.innerHTML = renderGameOver({
     modeLabel: modeLabel(finished),
@@ -238,9 +247,9 @@ function showGameOver() {
     scoresHtml: renderScores({ youScore: finished.youScore, opponent }),
     ledgerHtml: renderLedger({ rows: finished.ledger, opponentName: opponent?.name ?? null }),
     seed: finished.seed,
+    daily: Boolean(day),
   });
 
-  const day = dailyDay;
   refreshLeaderboard({ day }, null);
 
   // The attempt is spent the moment the game ends, not when it is saved. Recording it
@@ -268,9 +277,10 @@ function showGameOver() {
     const row = await saveScore({ name, score: finished.youScore, seed: finished.seed, day });
     if (day) writeDaily({ day, score: finished.youScore, name, id: row?.id ?? null });
     await refreshLeaderboard({ day }, row?.id ?? null);
-    $('play-again')?.focus();
+    ($('view-board') ?? $('play-again'))?.focus();
   });
-  $('play-again').addEventListener('click', () => startGame(mode));
+  $('play-again')?.addEventListener('click', () => startGame(mode));
+  $('view-board')?.addEventListener('click', () => showScoreboard());
   $('change-mode').addEventListener('click', () => showModeSelect());
   $('player-name').focus();
 }

@@ -185,6 +185,29 @@ test('the name input matches the 12-letter rule and has somewhere to report erro
   assert.ok(!html.includes('maxlength="20"'));
 });
 
+test('game over after the daily offers the scoreboard, not another attempt', () => {
+  const daily = renderGameOver({
+    modeLabel: 'Daily Special',
+    resultText: null,
+    scoresHtml: '',
+    ledgerHtml: '',
+    seed: 1,
+    daily: true,
+  });
+  assert.ok(daily.includes('id="view-board"'));
+  assert.ok(!daily.includes('id="play-again"'), 'one game a day means no replay button');
+
+  const normal = renderGameOver({
+    modeLabel: 'Classic',
+    resultText: null,
+    scoresHtml: '',
+    ledgerHtml: '',
+    seed: 1,
+  });
+  assert.ok(normal.includes('id="play-again"'));
+  assert.ok(!normal.includes('id="view-board"'));
+});
+
 test('an empty leaderboard says so', () => {
   assert.ok(renderLeaderboard([]).includes('No scores saved yet.'));
 });
