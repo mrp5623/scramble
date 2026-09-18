@@ -9,5 +9,5 @@
  * The owner fills these in during setup; until then the leaderboard reports itself
  * unavailable and the game plays normally.
  */
-export const SUPABASE_URL = 'https://REPLACE_ME.supabase.co';
-export const SUPABASE_ANON_KEY = 'REPLACE_ME';
+export const SUPABASE_URL = 'https://spsztpfwuydpqfaucvtw.supabase.co';
+export const SUPABASE_ANON_KEY = 'sb_publishable_CWZeF69fN6juv6nnNBE81g_fpUZmJzx';
