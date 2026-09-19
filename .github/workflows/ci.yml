@@ -38,4 +38,4 @@ jobs:
           node-version: "22"
 
       - name: Run the web test suite
-        run: node --test "web/tests/**/*.test.js"
+        run: node --test "web/tests/**/*.test.js" "tools/tests/**/*.test.js"

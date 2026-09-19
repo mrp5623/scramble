@@ -22,7 +22,7 @@ test('the build ships only what the browser loads', () => {
 });
 
 test('CI still gates both suites after Pages was dropped', () => {
-  assert.ok(CI.includes('node --test "web/tests/**/*.test.js"'));
+  assert.ok(CI.includes('node --test "web/tests/**/*.test.js" "tools/tests/**/*.test.js"'));
   assert.ok(CI.includes('pytest experiments/tests/ -q'));
   assert.ok(CI.includes('pull_request:'));
 });
