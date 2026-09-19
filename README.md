@@ -81,7 +81,11 @@ with no toolchain installed.
 
 ## The stats
 
-`data/nfl_qbs.json` is a static snapshot of career passing yards, generated offline, which sums each quarterback's franchise totals across cached Pro-Football-Reference team pages. Those cached pages aren't committed (and PFR now blocks automated scraping), so updating the dataset would currently be manual.
+`data/nfl_qbs.json` maps each franchise to everyone who has thrown a pass for it, with their career regular-season passing yards. It is rebuilt every Tuesday in season by [`tools/refresh-data.mjs`](tools/refresh-data.mjs) from [nflverse](https://github.com/nflverse/nflverse-data) release data — no scraping, which matters because Pro-Football-Reference now blocks it.
+
+The rebuild is `data/qb_baseline.json` (career totals through the end of the 2025 season, including the pre-1999 years nflverse doesn't cover) plus every week since. It recomputes rather than increments, so running it twice is a no-op, and a gate refuses any rebuild where a career total falls, a passer disappears, or a franchise loses its passers.
+
+Note that "quarterbacks" is generous here: the dataset is every passer, so trick-play throws by receivers and the odd punter count too.
 
 ## Project layout
 
@@ -90,7 +94,9 @@ with no toolchain installed.
 | `main.cpp`, `scramblewindow.*` | Qt UI |
 | `scramble.*` | Game logic and dataset loading |
 | `team.*` | Team value type |
-| `data/nfl_qbs.json` | Bundled game data |
+| `data/nfl_qbs.json` | Bundled game data, rebuilt weekly |
+| `data/qb_baseline.json` | Career totals through 2025, the rebuild's starting point |
+| `tools/` | Dataset refresh scripts and their tests |
 | `web/` | Browser version: engine, opponents, UI, and tests |
 | `experiments/` | RL agent, baselines, simulator, and tests (the study) |
 | `docs/experiments/REPORT.md` | Full experiment write-up and findings |

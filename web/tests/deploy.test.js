@@ -6,6 +6,7 @@ const root = (p) => readFileSync(new URL(`../../${p}`, import.meta.url), 'utf8')
 
 const VERCEL = JSON.parse(root('vercel.json'));
 const CI = root('.github/workflows/ci.yml');
+const DATA_JOB = root('.github/workflows/data.yml');
 
 test('vercel publishes an assembled site, not the repo', () => {
   assert.equal(VERCEL.outputDirectory, '_site');
@@ -29,6 +30,16 @@ test('CI still gates both suites after Pages was dropped', () => {
 
 test('workflows are indented with spaces only', () => {
   assert.ok(!CI.includes('\t'));
+});
+
+test('the weekly refresh is gated and only commits real changes', () => {
+  assert.ok(DATA_JOB.includes('schedule:'));
+  assert.ok(DATA_JOB.includes('workflow_dispatch:'));
+  assert.ok(DATA_JOB.includes('node tools/refresh-data.mjs'));
+  assert.ok(DATA_JOB.includes('node tools/verify-data.mjs'));
+  assert.ok(DATA_JOB.includes('contents: write'));
+  // The verify step must come before the commit step, or the gate is decorative.
+  assert.ok(DATA_JOB.indexOf('verify-data') < DATA_JOB.indexOf('git commit'));
 });
 
 test('Pages is gone, and the web suite is not gated twice', () => {
