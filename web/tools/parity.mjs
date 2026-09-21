@@ -7,6 +7,12 @@
  * Bob and Sal are deterministic, so they are compared game by game. Carl needs random
  * futures, and Python's Mersenne Twister cannot be reproduced here, so he is compared
  * in aggregate against the exported mean.
+ *
+ * This reads the dataset the fixtures were generated from, NOT the live data. It tests
+ * that the port is correct, which has nothing to do with what the dataset says this
+ * week -- and the live file is rebuilt every Tuesday, so pointing at it made every
+ * game fail after the first refresh. That buried any real porting bug under 500
+ * false alarms. The Python exporter writes both files together; keep them paired.
  */
 import { readFileSync } from 'node:fs';
 import { buildRoster } from '../src/roster.js';
@@ -18,7 +24,7 @@ import { createAgent, agentPick } from '../src/policies/agent.js';
 
 const read = (rel) => JSON.parse(readFileSync(new URL(rel, import.meta.url), 'utf8'));
 
-const roster = buildRoster(read('../../data/nfl_qbs.json'));
+const roster = buildRoster(read('./fixtures/nfl_qbs.parity.json'));
 const agent = createAgent(read('../weights/sal.json'));
 const fx = read('./fixtures/parity.json');
 

@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import random
+import shutil
 from pathlib import Path
 
 import torch
@@ -21,11 +22,14 @@ from experiments.sim.gym_env import (
     decode_action,
     legal_action_mask,
 )
-from experiments.sim.scramble_sim import ScrambleSim, load_roster
+from experiments.sim.scramble_sim import DATA_PATH, ScrambleSim, load_roster
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 CKPT = REPO_ROOT / "experiments" / "checkpoints" / "model1_crn_shuffle_long.pt"
 OUT = REPO_ROOT / "web" / "tools" / "fixtures" / "parity.json"
+# The dataset the fixtures were computed from. parity.mjs reads this rather than the
+# live file, which is rebuilt weekly: the check verifies the port, not the data.
+DATASET_OUT = OUT.parent / "nfl_qbs.parity.json"
 
 N_GAMES = 500
 
@@ -97,8 +101,11 @@ def main() -> None:
 
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(json.dumps(payload), encoding="utf-8")
+    # Written together so the two can never drift apart.
+    shutil.copyfile(DATA_PATH, DATASET_OUT)
 
     print(f"wrote {OUT} ({OUT.stat().st_size:,} bytes)")
+    print(f"wrote {DATASET_OUT} (the dataset these totals were computed from)")
     print(f"  greedy mean  {sum(greedy_totals) / N_GAMES:,.0f}")
     print(f"  Sal mean     {sum(sal_totals) / N_GAMES:,.0f}")
     print(f"  rollout mean {sum(rollout_totals) / N_GAMES:,.0f}")
