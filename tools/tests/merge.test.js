@@ -37,8 +37,26 @@ test('non-quarterbacks are kept', () => {
   assert.equal(ix.byKey.get('julian edelman').yards, 100);
 });
 
-test('rows with no passing yards add nothing', () => {
-  const ix = accumulate([row({ passing_yards: '' }), row({ passing_yards: '0' })], newIndex());
+test('an attempt with no yards still counts as playing for the team', () => {
+  // Andy Dalton threw one incompletion for Philadelphia: 1 attempt, 0 yards. The
+  // dataset is everyone who attempted a pass for a franchise -- the original snapshot
+  // holds 630 zero-yard entries -- so the team association must survive.
+  const ix = newIndex();
+  addEntry(ix, 'andy dalton', 39793, ['car', 'chi', 'cin', 'dal', 'nor']);
+  accumulate(
+    [row({ player_display_name: 'Andy Dalton', team: 'PHI', attempts: '1', passing_yards: '0' })],
+    ix,
+  );
+  const e = ix.byKey.get('andy dalton');
+  assert.equal(e.yards, 39793, 'no yards added');
+  assert.ok(e.teams.has('phi'), 'Philadelphia recorded');
+});
+
+test('rows with no pass attempted add nothing', () => {
+  const ix = accumulate(
+    [row({ attempts: '0', passing_yards: '' }), row({ attempts: '', passing_yards: '0' })],
+    newIndex(),
+  );
   assert.equal(ix.byKey.size, 0);
 });
 

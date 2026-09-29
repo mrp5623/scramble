@@ -72,7 +72,9 @@ export function accumulate(rows, index) {
   for (const row of rows) {
     if (row.season_type !== 'REG') continue;
     const yards = Number(row.passing_yards || 0);
-    if (!yards) continue;
+    // A pass attempt is what puts a player on a franchise's list, not yardage: one
+    // incompletion still counts (the original snapshot holds 630 zero-yard entries).
+    if (!Number(row.attempts || 0) && !yards) continue;
     if (!normalize(row.player_display_name)) continue;
 
     const entry = resolve(index, row.player_display_name);

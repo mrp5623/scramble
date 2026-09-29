@@ -2,7 +2,7 @@
 /**
  * Builds data/qb_baseline.json: career totals complete through a stated week.
  *
- * The first run seeds from data/nfl_qbs.json, which was measured to end at 2025
+ * It seeds from the pinned snapshot (web/tools/fixtures/nfl_qbs.parity.json), measured to end at 2025
  * regular season week 17, and folds week 18 in. Later runs fold a completed season in.
  *
  * The week-17 cutoff is a MEASUREMENT, so this script re-checks it before trusting it
@@ -74,7 +74,10 @@ function seedFromSnapshot(snapshot) {
 }
 
 async function main() {
-  const snapshot = JSON.parse(readFileSync('data/nfl_qbs.json', 'utf8'));
+  // Seed from the pinned week-17 snapshot, never data/nfl_qbs.json: once the weekly
+  // refresh has run, that file already contains week 18 and later, and seeding from it
+  // would count those weeks twice.
+  const snapshot = JSON.parse(readFileSync('web/tools/fixtures/nfl_qbs.parity.json', 'utf8'));
   const w2025 = await verifyCutoff();
 
   const index = seedFromSnapshot(snapshot);
